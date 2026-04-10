@@ -1,0 +1,389 @@
+\documentclass[12pt,a4paper]{article} 
+\usepackage{geometry} 
+\geometry{margin=1.4cm, top=1.6cm, bottom=3.2cm}  
+
+\usepackage{amsmath,amssymb} 
+\usepackage{array,multirow} 
+\usepackage{fancyhdr} 
+\usepackage{tikz} 
+\usepackage{graphicx} 
+\usepackage{xcolor} 
+\usepackage{enumitem} 
+
+% ── Language Setup ──
+\usepackage{polyglossia}
+\setmainlanguage[numerals=maghrib]{arabic}
+\setotherlanguage{french}
+\setotherlanguage{english}
+
+\usepackage{fontspec}
+\setmainfont[
+  Script=Arabic,
+  Scale=1.15,
+  AutoFakeBold=2.5
+]{Amiri}
+\newfontfamily\arabicfont[
+  Script=Arabic,
+  Scale=1.15,
+  AutoFakeBold=2.5
+]{Amiri}
+\newfontfamily\frenchfont[AutoFakeBold=2.5]{Amiri}
+\newfontfamily\englishfont[AutoFakeBold=2.5]{Amiri}
+
+% ── Section Formatting ──
+\makeatletter 
+\renewcommand\section{\@startsection{section}{1}{\z@}%   
+  {-2.5ex \@plus -1ex \@minus -.2ex}%   
+  {1.5ex \@plus.2ex}%   
+  {\normalfont\large\bfseries}} 
+\makeatother  
+
+% ── Header & Footer ──
+\pagestyle{fancy} 
+\fancyhf{} 
+\renewcommand{\headrulewidth}{0pt} 
+\renewcommand{\footrulewidth}{0pt} 
+
+\fancyhead[C]{%
+  \begin{tikzpicture}[remember picture, overlay]
+    \draw[line width=2pt, black]       
+      ([xshift=0.72cm, yshift=-0.72cm]current page.north west)       
+      rectangle ([xshift=-0.72cm, yshift=0.72cm]current page.south east);     
+    \draw[line width=0.6pt, black]       
+      ([xshift=0.85cm, yshift=-0.85cm]current page.north west)       
+      rectangle ([xshift=-0.85cm, yshift=0.88cm]current page.south east);   
+    \begin{scope}[opacity=0.05]
+      \node at (current page.center) {%
+        \includegraphics[width=0.7\paperwidth]{logo.png}%
+      };
+    \end{scope}
+  \end{tikzpicture}%
+}
+
+\fancyfoot[C]{%   
+  \noindent\fbox{%     
+    \begin{minipage}[c][1.1cm][c]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}%       
+      \hspace{0.5em}{\large\bfseries بالتوفيـــــق}\hfill       
+      \includegraphics[height=0.85cm]{logo.png}\hspace{0.5em}     
+    \end{minipage}%   
+  }% 
+}  
+
+\begin{document}
+\fontseries{sb}\selectfont
+
+%% HEADER TABLE
+\noindent{\setlength{\tabcolsep}{5pt}%
+\renewcommand{\arraystretch}{1.2}%
+\begin{tabular}{|p{0.285\textwidth}|p{0.345\textwidth}|p{0.285\textwidth}|}
+\hline
+\multirow{2}{*}{%
+  \parbox[c][3.8cm][c]{0.285\textwidth}{%
+    \centering
+    \textbf{الديوان الوطني للامتحانات والمسابقات}\\[6pt]
+    \textbf{اختبار في مادة: الرياضيات}}} & \parbox[c][1.9cm][c]{0.345\textwidth}{%
+  \centering
+  \textbf{الجمهورية الجزائرية الديمقراطية الشعبية}} & \multirow{2}{*}{%
+  \parbox[c][3.8cm][c]{0.285\textwidth}{%
+    \centering
+    \textbf{وزارة التربية الوطنية}}} \\ \cline{2-2} & \parbox[c][1.9cm][c]{0.345\textwidth}{%
+  \centering
+  \textbf{امتحان شهادة التعليم المتوسط}\\[4pt]
+  دورة: 2023\\[2pt]
+  المدة: ساعتان} & \\ \hline
+\end{tabular}}
+
+\vspace{0.5cm}
+
+\section*{الجزء الأوّل: (12 نقطة)}
+
+\section*{التّمرين الأوّل: (03 نقطات)}
+
+لتكن الأعداد $A$، $B$، $C$ حيث:
+\[
+A = \frac{756}{216} \quad , \quad B = \sqrt{117} + 3\sqrt{52} - \sqrt{637} \quad , \quad C = \frac{3\sqrt{13}}{\sqrt{3}}
+\]
+
+\begin{enumerate}
+    \item اكتب العدد $A$ على شكل كسر غير قابل للاختزال.
+    \item بيّن أنّ العدد $B$ يُكتب على الشّكل $a\sqrt{13}$ حيث: $a$ عدد طبيعيّ.
+    \item تحقّق أنّ: $B \times C = 26\sqrt{3}$.
+\end{enumerate}
+
+\section*{التّمرين الثّاني: (03 نقطات) \normalfont{(لا يطلب إعادة رسم الشّكل على ورقة الإجابة)}}
+
+تمعّن في الشّكل المقابل حيث: $2 > x$. (وحدة الطّول هي $cm$)
+
+\begin{center}
+\begin{tikzpicture}
+    % Rectangle KLMD (outer)
+    \draw (0,0) node[below left]{$L$} -- (4,0) node[below right]{$M$} -- (4,3) node[above right]{$D$} -- (0,3) node[above left]{$K$} -- cycle;
+    % Rectangle ABDC (inner, top right)
+    \draw (1.5,1.5) node[above left]{$C$} -- (4,1.5) -- (4,3) -- (1.5,3) -- cycle;
+    % Labels
+    \node[above] at (2.75,3) {$\xleftarrow{\quad x-2 \quad}$};
+    \node[above] at (0.75,3) {};
+    \node[right] at (4,2.25) {};
+    % Tick marks
+    \node[above] at (3.2, 3) {};
+    % Dimension labels
+    \node[below] at (2, 0) {$x+2$};
+    % Points A and B
+    \node[above right] at (4,3) {$A$};
+    \node[above left] at (1.5,3) {$B$};
+    \node[below right] at (4,1.5) {$D$};
+    \node[above left] at (1.5,1.5) {$C$};
+    % right angle
+    \draw (3.8,1.5) -- (3.8,1.7) -- (4,1.7);
+\end{tikzpicture}
+\end{center}
+
+\begin{enumerate}
+    \item عبّر عن مساحة كلٍّ من المربّع والمستطيل بدلالة $x$.
+    \item لتكن العبارتان $E$ و $F$ حيث:
+    \[
+    E = (x-2)^2 \quad , \quad F = (x+2)(x-2)
+    \]
+    - بيّن أنّ: $E + F = 2x(x-2)$.
+    \item عيّن قيم $x$ التي يكون من أجلها محيط الشّكل يساوي على الأقل $20\, cm$.
+\end{enumerate}
+
+\section*{التّمرين الثّالث: (03 نقطات) \normalfont{(لا يطلب إعادة رسم الشّكل على ورقة الإجابة)}}
+
+إليك الشّكل المقابل، حيث وحدة الطّول هي $cm$.
+
+\begin{center}
+\begin{tikzpicture}[scale=0.9]
+    % Triangle IJM
+    \coordinate (I) at (0,0);
+    \coordinate (J) at (2,4);
+    \coordinate (M) at (5,0);
+    \coordinate (K) at (3,0);
+    \coordinate (N) at (0.9,1.8);
+
+    \draw (I) -- (J) -- (M) -- cycle;
+    \draw (N) -- (K);
+
+    \node[left] at (I) {$I$};
+    \node[above] at (J) {$J$};
+    \node[right] at (M) {$M$};
+    \node[below] at (K) {$K$};
+    \node[left] at (N) {$N$};
+
+    % Dimensions
+    \node[left] at (1.45, 2.9) {$5$};
+    \node[left] at (0.4, 0.9) {$4$};
+    \node[below] at (4, 0) {$3$};
+
+    % Angle at I
+    \node[right] at (0.35, 0.15) {$45°$};
+\end{tikzpicture}
+\end{center}
+
+\begin{enumerate}
+    \item بيّن أنّ المستقيمين $(JK)$ و $(IM)$ متعامدان.
+    \item احسب الطّول $IK$.
+    \item المستقيم الموازي لـ $(JM)$ والذي يشمل $K$ يقطع $[IJ]$ في $N$. احسب الطّول $NK$.
+\end{enumerate}
+
+\section*{التّمرين الرّابع: (03 نقطات)}
+
+المستوى منسوب إلى معلم متعامد ومتجانس $\left(O, \vec{i}, \vec{j}\right)$.
+
+المستقيم $(d)$ هو التّمثيل البيانيّ للدّالة $f$ المعرّفة بالعبارة $f(x) = -2x + 3$.
+
+\begin{enumerate}
+    \item $A(x_A; 1)$، $B(2; y_B)$ نقطتان من $(d)$، احسب كلًّا من $x_A$ و $y_B$.
+    \item لتكن النّقطتان $C(1; 2)$، $D(-1; -2)$، بيّن أنّ النّقط $C$؛ $O$؛ $D$ في استقاميّة.
+    \item أنشئ التّمثيل البيانيّ للدّالة $f$.
+\end{enumerate}
+
+\section*{الجزء الثّاني: (08 نقطات)}
+
+\section*{الوضعيّة:}
+
+قرّرت إحدى البلديّات تهيئة كلٍّ من فناء وقاعة استقبال لروضة أطفال عموميّة قصد حمايتهم من حوادث السّقوط، فخصّصت مبلغا قدره $1500000\, DA$ لإنجاز هذا المشروع.
+
+كلّفت البلديّة أحد المقاولين بإنجاز التّهيئة مع شراء عشب اصطناعيّ لتغطية أرضيّة الفناء وبساط لفرش قاعة الاستقبال.
+
+إذا علمت:
+\begin{itemize}
+    \item أنّ مساحة أرضيّة الفناء هي $840\, m^2$، وأنّ أرضيّة قاعة الاستقبال على شكل مثلّث قائم طولا ضلعيه القائمين $6\, m$ و $8\, m$.
+    \item وأنّ:
+    \[
+    \begin{cases}
+    \text{ثمن } 3\, m^2 \text{ من العشب الاصطناعيّ و} 1\, m^2 \text{ من البساط معًا يقدَّر بـ } 3500\, DA.\\
+    \text{ثمن } 1\, m^2 \text{ من العشب الاصطناعيّ و} 2\, m^2 \text{ من البساط معًا يقدَّر بـ } 3000\, DA.
+    \end{cases}
+    \]
+\end{itemize}
+
+\begin{enumerate}
+    \item جِد سعر المتر المربّع الواحد من العشب الاصطناعيّ وسعر المتر المربّع الواحد من البساط.
+    \item إذا علمت أنّ مصاريف الإنجاز (النّقل وأجرة العمّال) قُدِّرت بـ $20\%$ من المبلغ المُخصَّص لهذا المشروع، ما هو مقدار ربح أو خسارة المقاول؟ مع التّبرير.
+\end{enumerate}
+
+
+\newpage
+\begin{center}
+  \vspace{0.5cm}
+  {\Large\bfseries ─────────────────────────────}\\[0.3em]
+  {\Large\bfseries التصحيح النموذجي}\\[0.3em]
+  {\Large\bfseries ─────────────────────────────}
+  \vspace{0.5cm}
+\end{center}
+
+\section*{الإجابة النموذجية لموضوع امتحان شهادة التعليم المتوسط دورة: 2023}
+
+\section*{التمرين الأول: (03 نقاط)}
+
+\begin{enumerate}
+\item حساب $\text{pgcd}(756 ; 216)$، باستعمال إحدى الطريقتين نجد $\text{pgcd}(756 ; 216) = 108$
+
+إذن: $\dfrac{756}{216} = \dfrac{756 \div 108}{216 \div 108} = \dfrac{7}{2}$ هو كسر غير قابل للاختزال.
+
+\item تبيان أن $B$ يكتب على الشكل $a\sqrt{13}$:
+\[
+B = \sqrt{117} + 3\sqrt{52} - \sqrt{637} = \sqrt{9 \times 13} + 3\sqrt{4 \times 13} - \sqrt{49 \times 13} = 3\sqrt{13} + 6\sqrt{13} - 7\sqrt{13} = 2\sqrt{13}
+\]
+
+\item التحقق من أن: $B \times C = 26\sqrt{3}$
+\[
+B \times C = 2\sqrt{13} \times \frac{3\sqrt{13}}{\sqrt{3}} = \frac{6 \times 13\sqrt{3} \times \sqrt{3}}{\sqrt{3} \times \sqrt{3}} = \frac{78\sqrt{3}}{3} = 26\sqrt{3}
+\]
+\end{enumerate}
+
+\section*{التمرين الثاني: (03 نقاط)}
+
+\begin{enumerate}
+\item مساحة المربع بدلالة $x$ هي: $(x-2)^2$
+
+مساحة المستطيل بدلالة $x$ هي: $(x-2)(x+2)$
+
+\item تبيان أن: $E + F = 2x(x-2)$
+\[
+E + F = (x-2)^2 + (x-2)(x+2) = (x-2)(x-2+x+2)
+\]
+\[
+E + F = (x-2)(2x) = 2x(x-2)
+\]
+
+\item إيجاد قيمة $x$ التي من أجلها المحيط يساوي $20\,cm$ على الأقل:
+\[
+5(x-2) + x + 2 + (x+2) - (x-2) \geq 20
+\]
+\[
+5x - 10 + 2x + 4 - x + 2 \geq 20
+\]
+\[
+6x - 4 \geq 20
+\]
+\[
+6x \geq 24
+\]
+\[
+x \geq 4
+\]
+قيم $x$ هي كل الأطوال الأكبر من أو تساوي $4\,cm$.
+\end{enumerate}
+
+\section*{التمرين الثالث: (03 نقاط)}
+
+\begin{enumerate}
+\item تبيان أن $(JK) \perp (IM)$ (معناه نبين أن المثلث $JKM$ قائم في $K$)
+
+لدينا في المثلث $JKM$: $JK^2 + KM^2 = 4^2 + 3^2 = 25$ و $JM^2 = 5^2 = 25$
+
+أي $JK^2 + KM^2 = JM^2$، إذن فحسب الخاصية العكسية لفيتاغورس فإن المثلث $JKM$ قائم في $K$
+
+ومنه: $(JK) \perp (IM)$
+
+\item حساب الطول $IK$:
+
+بما أن المثلث $IKJ$ قائم في $K$ و $\hat{I} = 45°$ فإنه متساوي الساقين ومنه: $IK = NJ = 4$
+
+(يمكن الحل باستعمال $\tan 45° = \dfrac{4}{IK}$ منه $IK = 4$)
+
+\item حساب الطول $NK$:
+
+من الشكل لدينا $(NK) // (JM)$، $(JN)$، و$(MK)$ يتقاطعان في $I$
+
+منه حسب خاصية طاليس: $\dfrac{IK}{IM} = \dfrac{NK}{JM}$ أي $\dfrac{4}{7} = \dfrac{NK}{5}$
+
+منه $NK = \dfrac{20}{7}$
+\end{enumerate}
+
+\section*{التمرين الرابع: (03 نقاط)}
+
+\begin{enumerate}
+\item حساب $x_A$ وحساب $y_B$:
+
+$-2x_A + 3 = 1$ وبالتالي $-2x_A = -2$ و منه: $x_A = 1$
+
+$y_B = -2 \times 2 + 3$ ومنه $y_B = -1$
+
+\item إثبات أن النقط $C$، $O$، $D$ في استقامية:
+
+لدينا: $C(1;2)$، منه $\overrightarrow{OC}\begin{pmatrix}1\\2\end{pmatrix}$
+
+ولدينا: $D(-1;-2)$، منه $\overrightarrow{OD}\begin{pmatrix}-1\\-2\end{pmatrix}$ أي $\overrightarrow{DO}\begin{pmatrix}1\\2\end{pmatrix}$ منه $\overrightarrow{OC} = \overrightarrow{DO}$
+
+ويعني أن $O$ منتصف $[DC]$ إذن النقط $C$، $O$، $D$ في استقامية.
+
+(يمكن توظيف حساب احداثيتي منتصف قطعة مستقيم أو التناظر بالنسبة إلى المبدأ $O$ لإثبات استقامية النقط $D$، $O$، $C$)
+
+\item التمثيل البياني للدالة $f$:
+
+\[
+\begin{array}{|c|c|c|}
+\hline
+x & 0 & 1 \\
+\hline
+y & 3 & 1 \\
+\hline
+\end{array}
+\]
+\end{enumerate}
+
+\section*{الوضعية: (08 نقاط)}
+
+\begin{enumerate}
+\item تعيين سعر المتر المربع الواحد من البساط والمتر المربع الواحد من العشب الاصطناعي:
+
+نرمز بـ $X$ لسعر المتر المربع الواحد من البساط
+
+وبـ $Y$ لسعر المتر المربع الواحد من العشب الاصطناعي
+
+فنحصل على الجملة:
+\[
+\begin{cases} 3x + y = 3500 \quad (1) \\ x + 2y = 3000 \quad (2) \end{cases}
+\]
+
+باختيار إحدى الطرائق لحل الجملة نجد أن حل الجملة هو الثنائية $(800 ; 1100)$.
+
+أي: سعر المتر المربع الواحد من البساط هو: $800\,DA$
+
+سعر المتر المربع الواحد من العشب الاصطناعي هو: $1100\,DA$
+
+\item حساب قيمة الربح الذي سيتحصل عليه المقاول:
+
+- حساب مصاريف الإنجاز:
+\[
+1500000 \times \frac{20}{100} = 300000 \quad \text{أي قيمة المصاريف هي: } 300000\,DA
+\]
+
+- حساب مساحة قاعة الاستقبال: $\dfrac{8 \times 6}{2} = \dfrac{48}{2} = 24$ أي تساوي $24\,m^2$
+
+تكلفة شراء البساط والعشب الاصطناعي معًا تساوي:
+\[
+840 \times 1100 + 24 \times 800 = 943200 \quad \text{أي تساوي: } 943200\,DA
+\]
+
+تكلفة المشروع: $943200 + 300000 = 1243200$ أي تساوي: $1243200\,DA$
+
+المقاول ربح ومقدار ربحه: $1500000 - 1243200 = 256800$
+
+أي: $256800\,DA$
+\end{enumerate}
+
+\end{document}
