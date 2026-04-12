@@ -221,6 +221,8 @@
       .dl-subject  { background: #1e293b; color: #f8fafc; }
       .dl-solution { background: #0f766e; color: white; }
       .dl-drive    { background: #b45309; color: white; }
+      .dl-reset    { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; cursor: pointer; font-size: 14px; font-family: inherit; }
+      .dl-reset:hover { background: #e2e8f0; opacity: 1; }
 
       /* ── Figure info ── */
       #figureInfo {
@@ -252,22 +254,7 @@
       #debugBox .log-line { color: #475569; }
       #debugBox .log-line.highlight { color: #94a3b8; }
 
-      /* ── Reset link ── */
-      #resetBtn {
-        display: none;
-        width: 100%;
-        background: none;
-        border: none;
-        color: #64748b;
-        font-size: 13px;
-        padding: 12px;
-        cursor: pointer;
-        text-decoration: underline;
-        text-underline-offset: 3px;
-        margin-top: 8px;
-        text-align: center;
-      }
-      #resetBtn:hover { color: #334155; }
+      /* resetBtn styled via .dl-reset above */
     </style>
   </head>
   <body>
@@ -338,11 +325,11 @@
             <a id="dlSubject"  class="dl-btn dl-subject"  href="#" target="_blank">⬇ تحميل ورقة الامتحان</a>
             <a id="dlSolution" class="dl-btn dl-solution" href="#" target="_blank" style="display:none">⬇ تحميل التصحيح النموذجي</a>
             <a id="dlDrive"    class="dl-btn dl-drive"    href="#" target="_blank" style="display:none">↗ فتح التصحيح على Google Drive</a>
+            <button id="resetBtn" class="dl-btn dl-reset">↑ رفع امتحان جديد</button>
           </div>
 
           <div id="figureInfo"></div>
           <div id="debugBox"></div>
-          <button id="resetBtn">معالجة امتحان آخر</button>
 
         </div>
       </div>
