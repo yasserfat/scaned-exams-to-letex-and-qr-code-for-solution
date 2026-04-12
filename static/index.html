@@ -221,12 +221,15 @@
 
       <div id="figureInfo"></div>
       <div id="debugBox"></div>
+
+      <button id="resetBtn" style="display:none; margin-top:12px; background:#64748b;">معالجة امتحان آخر</button>
     </div>
 
     <script>
       const dropzone   = document.getElementById('dropzone');
       const input      = document.getElementById('pdfInput');
       const btn        = document.getElementById('processBtn');
+      const resetBtn   = document.getElementById('resetBtn');
       const fileInfo   = document.getElementById('fileInfo');
       const fileName   = document.getElementById('fileName');
       const stepsDiv   = document.getElementById('steps');
@@ -382,11 +385,28 @@
         }
 
         showFinal('تمت المعالجة بنجاح', 'success');
+        resetBtn.style.display = 'block';
         log(`job_id: ${job_id}`);
         log(`figures: ${figures_extracted}/${figures_total}`);
         if (cost_usd != null) log(`cost: $${cost_usd.toFixed(4)}`);
         if (drive_url) log(`drive: ${drive_url}`);
         btn.disabled = false;
+      });
+
+      resetBtn.addEventListener('click', () => {
+        selectedFile = null;
+        input.value = '';
+        fileInfo.style.display = 'none';
+        stepsDiv.style.display = 'none';
+        finalStatus.style.display = 'none';
+        downloads.style.display = 'none';
+        figureInfo.style.display = 'none';
+        debugBox.style.display = 'none';
+        debugBox.textContent = '';
+        resetBtn.style.display = 'none';
+        btn.disabled = true;
+        document.getElementById('dlSolution').style.display = 'none';
+        document.getElementById('dlDrive').style.display = 'none';
       });
     </script>
   </body>
