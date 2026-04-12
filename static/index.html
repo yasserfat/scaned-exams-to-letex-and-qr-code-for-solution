@@ -6,238 +6,363 @@
     <title>معالج الامتحانات</title>
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
+
       body {
-        font-family: Arial, sans-serif;
+        font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
         background: #f1f5f9;
         min-height: 100vh;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: center;
-        padding: 20px;
       }
+
+      /* ── Header ── */
+      header {
+        width: 100%;
+        background: #1e293b;
+        color: #f8fafc;
+        padding: 18px 32px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        border-bottom: 3px solid #334155;
+      }
+      header .logo {
+        width: 38px; height: 38px;
+        background: #334155;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+      }
+      header h1 {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        color: #f1f5f9;
+      }
+      header p {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-top: 2px;
+      }
+
+      /* ── Main card ── */
+      main {
+        width: 100%;
+        max-width: 700px;
+        padding: 32px 20px 48px;
+      }
+
       .card {
         background: white;
-        border-radius: 16px;
-        padding: 40px;
-        width: 100%;
-        max-width: 600px;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        overflow: hidden;
       }
-      h2 { font-size: 22px; color: #1e293b; margin-bottom: 8px; }
-      p.subtitle { color: #64748b; font-size: 14px; margin-bottom: 28px; }
 
+      .card-body { padding: 32px; }
+
+      /* ── Dropzone ── */
       #dropzone {
         border: 2px dashed #cbd5e1;
-        border-radius: 12px;
-        padding: 36px 20px;
+        border-radius: 10px;
+        padding: 40px 20px;
         text-align: center;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: border-color 0.15s, background 0.15s;
         color: #94a3b8;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
+        background: #f8fafc;
       }
-      #dropzone:hover, #dropzone.hover { border-color: #2563eb; background: #eff6ff; color: #2563eb; }
-      #dropzone .icon { font-size: 36px; margin-bottom: 8px; }
-      #dropzone p { font-size: 14px; }
+      #dropzone:hover, #dropzone.hover {
+        border-color: #1e293b;
+        background: #f1f5f9;
+        color: #334155;
+      }
+      #dropzone .dz-icon { font-size: 32px; margin-bottom: 10px; }
+      #dropzone .dz-primary { font-size: 15px; color: #334155; font-weight: 500; margin-bottom: 4px; }
+      #dropzone .dz-secondary { font-size: 13px; color: #94a3b8; }
+      input[type=file] { display: none; }
 
+      /* ── File info ── */
       #fileInfo {
         display: none;
         background: #f8fafc;
         border: 1px solid #e2e8f0;
         border-radius: 8px;
         padding: 10px 14px;
-        margin-bottom: 16px;
-        font-size: 14px;
-        color: #334155;
+        margin-bottom: 14px;
+        font-size: 13px;
+        color: #475569;
+        display: none;
+        align-items: center;
+        gap: 8px;
       }
+      #fileInfo .fi-name { flex: 1; font-weight: 500; }
+      #fileInfo .fi-size { color: #94a3b8; }
 
-      button {
+      /* ── Buttons ── */
+      .btn-primary {
         width: 100%;
-        background: #2563eb;
+        background: #1e293b;
         color: white;
         border: none;
-        padding: 14px;
-        border-radius: 10px;
-        font-size: 16px;
+        padding: 13px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
         cursor: pointer;
-        transition: background 0.2s;
+        transition: background 0.15s;
+        letter-spacing: 0.02em;
       }
-      button:hover:not(:disabled) { background: #1d4ed8; }
-      button:disabled { background: #93c5fd; cursor: not-allowed; }
+      .btn-primary:hover:not(:disabled) { background: #0f172a; }
+      .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
 
-      #steps { display: none; margin-top: 24px; }
+      /* ── Divider ── */
+      .divider {
+        height: 1px;
+        background: #f1f5f9;
+        margin: 24px 0;
+      }
+
+      /* ── Steps ── */
+      #steps { display: none; }
       .step {
         display: flex;
         align-items: flex-start;
-        gap: 12px;
-        padding: 10px 0;
-        border-bottom: 1px solid #f1f5f9;
+        gap: 0;
+        padding: 10px 0 10px 16px;
+        border-right: 3px solid #e2e8f0;
+        margin-bottom: 4px;
         font-size: 14px;
-        color: #64748b;
+        color: #94a3b8;
+        transition: border-color 0.2s, color 0.2s;
       }
-      .step:last-child { border-bottom: none; }
+      .step-text { flex: 1; line-height: 1.5; padding-right: 12px; }
       .step-icon {
-        width: 24px; height: 24px;
+        width: 22px; height: 22px;
         border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
-        font-size: 13px; flex-shrink: 0; margin-top: 1px;
+        font-size: 12px; flex-shrink: 0;
+        background: #f1f5f9;
+        color: #94a3b8;
+        margin-left: 12px;
       }
-      .step.waiting .step-icon { background: #e2e8f0; color: #94a3b8; }
-      .step.active  .step-icon { background: #fef9c3; }
-      .step.done    .step-icon { background: #dcfce7; }
-      .step.skipped .step-icon { background: #f1f5f9; color: #94a3b8; }
-      .step.failed  .step-icon { background: #fee2e2; }
-      .step.active  { color: #854d0e; }
-      .step.done    { color: #166534; }
-      .step.skipped { color: #94a3b8; }
-      .step.failed  { color: #991b1b; }
-      .step-text { flex: 1; line-height: 1.5; }
       .step-detail {
-        font-size: 12px; color: #94a3b8; margin-top: 2px;
-        font-family: monospace; direction: ltr; text-align: left;
+        font-size: 11px;
+        color: #cbd5e1;
+        margin-top: 2px;
+        font-family: monospace;
+        direction: ltr;
+        text-align: left;
       }
-      .step.failed .step-detail { color: #f87171; }
+
+      /* States */
+      .step.waiting  { border-right-color: #e2e8f0; color: #94a3b8; }
+      .step.active   { border-right-color: #f59e0b; color: #92400e; }
+      .step.done     { border-right-color: #10b981; color: #065f46; }
+      .step.skipped  { border-right-color: #e2e8f0; color: #cbd5e1; }
+      .step.failed   { border-right-color: #ef4444; color: #991b1b; }
+
+      .step.active  .step-icon { background: #fef3c7; color: #92400e; }
+      .step.done    .step-icon { background: #d1fae5; color: #065f46; }
+      .step.skipped .step-icon { background: #f8fafc; color: #cbd5e1; }
+      .step.failed  .step-icon { background: #fee2e2; color: #991b1b; }
+      .step.active  .step-detail { color: #d97706; }
+      .step.failed  .step-detail { color: #f87171; }
+      .step.done    .step-detail { color: #6ee7b7; }
+
       .spinner {
-        width: 14px; height: 14px;
-        border: 2px solid #854d0e;
+        width: 13px; height: 13px;
+        border: 2px solid #d97706;
         border-top-color: transparent;
         border-radius: 50%;
-        animation: spin 0.8s linear infinite;
+        animation: spin 0.7s linear infinite;
         display: inline-block;
       }
       @keyframes spin { to { transform: rotate(360deg); } }
 
+      /* ── Status banner ── */
       #finalStatus {
         display: none;
-        margin-top: 16px;
-        padding: 14px;
+        margin-top: 20px;
+        padding: 12px 16px;
         border-radius: 8px;
         font-size: 14px;
+        font-weight: 500;
         text-align: center;
       }
-      .success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-      .error   { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+      .success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+      .error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
 
+      /* ── Downloads ── */
       #downloads {
         display: none;
-        margin-top: 16px;
-        display: none;
-        gap: 10px;
         flex-direction: column;
+        gap: 10px;
+        margin-top: 16px;
       }
       .dl-btn {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
         padding: 12px 16px;
         border-radius: 8px;
         text-decoration: none;
-        font-size: 15px;
-        text-align: center;
-        font-weight: bold;
+        font-size: 14px;
+        font-weight: 600;
+        transition: opacity 0.15s;
+        border: none;
       }
-      .dl-subject  { background: #2563eb; color: white; }
-      .dl-solution { background: #059669; color: white; }
-      .dl-drive    { background: #f59e0b; color: white; }
-      .dl-btn:hover { opacity: 0.9; }
+      .dl-btn:hover { opacity: 0.88; }
+      .dl-subject  { background: #1e293b; color: #f8fafc; }
+      .dl-solution { background: #0f766e; color: white; }
+      .dl-drive    { background: #b45309; color: white; }
 
+      /* ── Figure info ── */
       #figureInfo {
         display: none;
-        margin-top: 8px;
-        font-size: 13px;
-        color: #64748b;
+        margin-top: 10px;
+        font-size: 12px;
+        color: #94a3b8;
         text-align: center;
       }
 
+      /* ── Debug log ── */
       #debugBox {
         display: none;
         margin-top: 16px;
         background: #0f172a;
-        color: #94a3b8;
+        color: #64748b;
         border-radius: 8px;
-        padding: 14px;
-        font-family: monospace;
-        font-size: 12px;
+        padding: 12px 14px;
+        font-family: 'Courier New', monospace;
+        font-size: 11px;
         direction: ltr;
         text-align: left;
-        max-height: 200px;
+        max-height: 160px;
         overflow-y: auto;
         white-space: pre-wrap;
         word-break: break-all;
+        line-height: 1.6;
       }
+      #debugBox .log-line { color: #475569; }
+      #debugBox .log-line.highlight { color: #94a3b8; }
+
+      /* ── Reset link ── */
+      #resetBtn {
+        display: none;
+        width: 100%;
+        background: none;
+        border: none;
+        color: #64748b;
+        font-size: 13px;
+        padding: 12px;
+        cursor: pointer;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        margin-top: 8px;
+        text-align: center;
+      }
+      #resetBtn:hover { color: #334155; }
     </style>
   </head>
   <body>
-    <div class="card">
-      <h2>معالج الامتحانات الممسوحة</h2>
-      <p class="subtitle">ارفع ملف PDF ممسوح ضوئياً وسيتم إنتاج ورقة الامتحان والتصحيح النموذجي</p>
 
-      <div id="dropzone">
-        <div class="icon">📄</div>
-        <p>اسحب ملف PDF هنا أو انقر للاختيار</p>
-        <input type="file" id="pdfInput" accept=".pdf" style="display:none" />
+    <header>
+      <div class="logo">📋</div>
+      <div>
+        <h1>معالج الامتحانات الممسوحة</h1>
+        <p>تحويل PDF ممسوح إلى ورقة امتحان + تصحيح نموذجي</p>
       </div>
+    </header>
 
-      <div id="fileInfo">📎 <span id="fileName"></span></div>
+    <main>
+      <div class="card">
+        <div class="card-body">
 
-      <button id="processBtn" disabled>معالجة الامتحان</button>
+          <div id="dropzone">
+            <div class="dz-icon">📄</div>
+            <div class="dz-primary">اسحب ملف PDF هنا</div>
+            <div class="dz-secondary">أو انقر للاختيار من الجهاز</div>
+            <input type="file" id="pdfInput" accept=".pdf" />
+          </div>
 
-      <div id="steps">
-        <div class="step waiting" id="step1">
-          <div class="step-icon">1</div>
-          <div class="step-text">رفع ومعالجة الملف<div class="step-detail" id="d1"></div></div>
-        </div>
-        <div class="step waiting" id="step2">
-          <div class="step-icon">2</div>
-          <div class="step-text">استخراج المحتوى (Claude)<div class="step-detail" id="d2"></div></div>
-        </div>
-        <div class="step waiting" id="step3">
-          <div class="step-icon">3</div>
-          <div class="step-text">استخراج الصور التلقائي<div class="step-detail" id="d3"></div></div>
-        </div>
-        <div class="step waiting" id="step4">
-          <div class="step-icon">4</div>
-          <div class="step-text">توليد ملف التصحيح<div class="step-detail" id="d4"></div></div>
-        </div>
-        <div class="step waiting" id="step5">
-          <div class="step-icon">5</div>
-          <div class="step-text">رفع التصحيح إلى Google Drive<div class="step-detail" id="d5"></div></div>
-        </div>
-        <div class="step waiting" id="step6">
-          <div class="step-icon">6</div>
-          <div class="step-text">توليد رمز QR<div class="step-detail" id="d6"></div></div>
-        </div>
-        <div class="step waiting" id="step7">
-          <div class="step-icon">7</div>
-          <div class="step-text">توليد ورقة الامتحان النهائية<div class="step-detail" id="d7"></div></div>
+          <div id="fileInfo">
+            <span>📎</span>
+            <span class="fi-name" id="fileName"></span>
+            <span class="fi-size" id="fileSize"></span>
+          </div>
+
+          <button class="btn-primary" id="processBtn" disabled>معالجة الامتحان</button>
+
+          <div class="divider" id="stepsDivider" style="display:none"></div>
+
+          <div id="steps">
+            <div class="step waiting" id="step1">
+              <div class="step-text">رفع ومعالجة الملف<div class="step-detail" id="d1"></div></div>
+              <div class="step-icon">1</div>
+            </div>
+            <div class="step waiting" id="step2">
+              <div class="step-text">استخراج المحتوى (Claude)<div class="step-detail" id="d2"></div></div>
+              <div class="step-icon">2</div>
+            </div>
+            <div class="step waiting" id="step3">
+              <div class="step-text">استخراج الصور التلقائي<div class="step-detail" id="d3"></div></div>
+              <div class="step-icon">3</div>
+            </div>
+            <div class="step waiting" id="step4">
+              <div class="step-text">توليد ملف التصحيح<div class="step-detail" id="d4"></div></div>
+              <div class="step-icon">4</div>
+            </div>
+            <div class="step waiting" id="step5">
+              <div class="step-text">رفع التصحيح إلى Google Drive<div class="step-detail" id="d5"></div></div>
+              <div class="step-icon">5</div>
+            </div>
+            <div class="step waiting" id="step6">
+              <div class="step-text">توليد رمز QR<div class="step-detail" id="d6"></div></div>
+              <div class="step-icon">6</div>
+            </div>
+            <div class="step waiting" id="step7">
+              <div class="step-text">توليد ورقة الامتحان النهائية<div class="step-detail" id="d7"></div></div>
+              <div class="step-icon">7</div>
+            </div>
+          </div>
+
+          <div id="finalStatus"></div>
+
+          <div id="downloads">
+            <a id="dlSubject"  class="dl-btn dl-subject"  href="#" target="_blank">⬇ تحميل ورقة الامتحان</a>
+            <a id="dlSolution" class="dl-btn dl-solution" href="#" target="_blank" style="display:none">⬇ تحميل التصحيح النموذجي</a>
+            <a id="dlDrive"    class="dl-btn dl-drive"    href="#" target="_blank" style="display:none">↗ فتح التصحيح على Google Drive</a>
+          </div>
+
+          <div id="figureInfo"></div>
+          <div id="debugBox"></div>
+          <button id="resetBtn">معالجة امتحان آخر</button>
+
         </div>
       </div>
-
-      <div id="finalStatus"></div>
-
-      <div id="downloads">
-        <a id="dlSubject"  class="dl-btn dl-subject"  href="#" target="_blank">تحميل ورقة الامتحان</a>
-        <a id="dlSolution" class="dl-btn dl-solution" href="#" target="_blank" style="display:none">تحميل التصحيح النموذجي</a>
-        <a id="dlDrive"    class="dl-btn dl-drive"    href="#" target="_blank" style="display:none">فتح التصحيح على Google Drive</a>
-      </div>
-
-      <div id="figureInfo"></div>
-      <div id="debugBox"></div>
-
-      <button id="resetBtn" style="display:none; margin-top:12px; background:#64748b;">معالجة امتحان آخر</button>
-    </div>
+    </main>
 
     <script>
-      const dropzone   = document.getElementById('dropzone');
-      const input      = document.getElementById('pdfInput');
-      const btn        = document.getElementById('processBtn');
-      const resetBtn   = document.getElementById('resetBtn');
-      const fileInfo   = document.getElementById('fileInfo');
-      const fileName   = document.getElementById('fileName');
-      const stepsDiv   = document.getElementById('steps');
-      const finalStatus= document.getElementById('finalStatus');
-      const downloads  = document.getElementById('downloads');
-      const figureInfo = document.getElementById('figureInfo');
-      const debugBox   = document.getElementById('debugBox');
-      let selectedFile = null;
+      const dropzone    = document.getElementById('dropzone');
+      const input       = document.getElementById('pdfInput');
+      const btn         = document.getElementById('processBtn');
+      const resetBtn    = document.getElementById('resetBtn');
+      const fileInfo    = document.getElementById('fileInfo');
+      const fileName    = document.getElementById('fileName');
+      const fileSize    = document.getElementById('fileSize');
+      const stepsDiv    = document.getElementById('steps');
+      const stepsDivider= document.getElementById('stepsDivider');
+      const finalStatus = document.getElementById('finalStatus');
+      const downloads   = document.getElementById('downloads');
+      const figureInfo  = document.getElementById('figureInfo');
+      const debugBox    = document.getElementById('debugBox');
+      let selectedFile  = null;
 
       dropzone.onclick = () => input.click();
       dropzone.addEventListener('dragover',  e => { e.preventDefault(); dropzone.classList.add('hover'); });
@@ -248,14 +373,18 @@
       function setFile(file) {
         if (!file || !file.name.toLowerCase().endsWith('.pdf')) return alert('الرجاء اختيار ملف PDF فقط');
         selectedFile = file;
-        fileName.textContent = `${file.name} (${(file.size/1024).toFixed(1)} KB)`;
-        fileInfo.style.display = 'block';
+        fileName.textContent = file.name;
+        fileSize.textContent = `(${(file.size/1024).toFixed(1)} KB)`;
+        fileInfo.style.display = 'flex';
         btn.disabled = false;
         finalStatus.style.display = 'none';
         downloads.style.display = 'none';
         figureInfo.style.display = 'none';
         stepsDiv.style.display = 'none';
+        stepsDivider.style.display = 'none';
+        resetBtn.style.display = 'none';
         debugBox.textContent = '';
+        debugBox.style.display = 'none';
       }
 
       function setStep(id, state, detail='') {
@@ -290,12 +419,15 @@
         downloads.style.display = 'none';
         figureInfo.style.display = 'none';
         debugBox.textContent = '';
+        debugBox.style.display = 'none';
         stepsDiv.style.display = 'block';
+        stepsDivider.style.display = 'block';
+        resetBtn.style.display = 'none';
 
         ['step1','step2','step3','step4','step5','step6','step7'].forEach(s => setStep(s,'waiting'));
 
         setStep('step1', 'active', 'جاري الرفع...');
-        log(`[${new Date().toLocaleTimeString()}] Uploading: ${selectedFile.name}`);
+        log(`[${new Date().toLocaleTimeString()}] ${selectedFile.name}`);
 
         const formData = new FormData();
         formData.append('file', selectedFile);
@@ -306,7 +438,7 @@
           response = await fetch('/process', { method: 'POST', body: formData });
           data = await response.json();
           const elapsed = ((Date.now()-t0)/1000).toFixed(1);
-          log(`Server responded in ${elapsed}s — status: ${response.status}`);
+          log(`responded in ${elapsed}s — status: ${response.status}`);
         } catch(e) {
           setStep('step1', 'failed', e.message);
           showFinal('تعذر الاتصال بالخادم.', 'error');
@@ -325,7 +457,6 @@
         const { job_id, needs_crop, subject, year, duration, drive_url,
                 figures_extracted, figures_total, has_solution, cost_usd } = data;
 
-        // If figures need manual cropping, redirect to crop UI
         if (needs_crop) {
           setStep('step1', 'done', `${subject} | ${year}`);
           setStep('step2', 'done', 'استخرج Claude المحتوى');
@@ -335,7 +466,6 @@
           return;
         }
 
-        // Mark steps based on what actually happened
         setStep('step1', 'done', `${subject} | ${year}`);
         setStep('step2', 'done', `${subject} · ${duration}`);
 
@@ -361,20 +491,18 @@
 
         setStep('step7', 'done', 'ورقة الامتحان جاهزة');
 
-        // Show download buttons
-        const dlSubject = document.getElementById('dlSubject');
-        dlSubject.href = `/outputs/${job_id}/subject.pdf`;
+        document.getElementById('dlSubject').href = `/outputs/${job_id}/subject.pdf`;
 
         const dlSolution = document.getElementById('dlSolution');
         if (has_solution) {
           dlSolution.href = `/outputs/${job_id}/solution.pdf`;
-          dlSolution.style.display = 'block';
+          dlSolution.style.display = 'flex';
         }
 
         const dlDrive = document.getElementById('dlDrive');
         if (drive_url) {
           dlDrive.href = drive_url;
-          dlDrive.style.display = 'block';
+          dlDrive.style.display = 'flex';
         }
 
         downloads.style.display = 'flex';
@@ -384,9 +512,9 @@
           figureInfo.style.display = 'block';
         }
 
-        showFinal('تمت المعالجة بنجاح', 'success');
+        showFinal('تمت المعالجة بنجاح ✓', 'success');
         resetBtn.style.display = 'block';
-        log(`job_id: ${job_id}`);
+        log(`job: ${job_id}`);
         log(`figures: ${figures_extracted}/${figures_total}`);
         if (cost_usd != null) log(`cost: $${cost_usd.toFixed(4)}`);
         if (drive_url) log(`drive: ${drive_url}`);
@@ -398,6 +526,7 @@
         input.value = '';
         fileInfo.style.display = 'none';
         stepsDiv.style.display = 'none';
+        stepsDivider.style.display = 'none';
         finalStatus.style.display = 'none';
         downloads.style.display = 'none';
         figureInfo.style.display = 'none';
