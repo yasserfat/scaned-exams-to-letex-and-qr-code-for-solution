@@ -1,7 +1,7 @@
 import re, os, json, base64, subprocess, shutil, uuid
 import anthropic
 from anthropic.types import TextBlock
-import fitz, cv2, numpy as np
+import fitz
 import qrcode
 import qrcode.constants
 from google.oauth2 import service_account
@@ -33,11 +33,19 @@ RULES FOR exam AND solution FIELDS:
 - No markdown fences. Arabic UTF-8 directly. Math in $...$ or \\[...\\].
 - English/French: \\begin{english}...\\end{english} or \\begin{french}...\\end{french}.
 - \\section*{} for titles, \\begin{enumerate}...\\end{enumerate} for lists.
-- Simple geometry: TikZ. Complex figures (circuits, biology diagrams): named placeholder:
+- NEVER use Unicode circled/enclosed numbers (①②③④⑤ etc.). Use \\textcircled{\\small 1} instead.
+- NEVER use Unicode special symbols that may not render in Arabic fonts. Use LaTeX equivalents.
+- Complex figures (circuits, diagrams, drawings, photos, tables-with-images): use this placeholder:
     \\begin{center}
-    \\fbox{\\parbox{7cm}{\\centering\\textbf{[FIGURE:name:pageN]}\\\\[4pt]{\\small أرفق الصورة هنا}}}
+    \\fbox{\\parbox{7cm}{\\centering\\textbf{[FIGURE:name:pageN:top:left:bottom:right]}\\\\[4pt]{\\small أرفق الصورة هنا}}}
     \\end{center}
-  where N = 1-based page number in the input PDF where the figure appears.
+  where:
+    - name = short snake_case identifier (e.g. circuit_1, bottles, inclined_plane)
+    - N = 1-based page number in the input PDF where the figure appears
+    - top, left, bottom, right = bounding box as decimal fractions 0.0–1.0 of the PAGE dimensions
+      (0,0 = top-left corner of the page; 1,1 = bottom-right corner)
+      Be precise — only include the figure/diagram region, NOT surrounding text or labels.
+  Example: [FIGURE:circuit_1:page1:0.10:0.00:0.45:0.60]
 - exam: questions section only. No header table. Start with first \\section*.
 - solution: solution/correction section only. If absent: return string NO_SOLUTION.
 """
@@ -155,22 +163,33 @@ def compile_latex(latex_code: str, work_dir: str,
 # ── Figure extraction ─────────────────────────────────────────────────────────
 
 def parse_figure_placeholders(latex: str) -> list[dict]:
-    """Returns [{"name": str, "page": int}, ...]  page defaults to 1."""
-    pattern = r'\[FIGURE:([\w_-]+)(?::page(\d+))?\]'
+    """
+    Returns [{"name": str, "page": int, "top": float, "left": float,
+              "bottom": float, "right": float}, ...]
+    All bbox fields default to full-page (0.0/1.0) when absent.
+    """
+    pattern = r'\[FIGURE:([\w_-]+):page(\d+)(?::([0-9.]+):([0-9.]+):([0-9.]+):([0-9.]+))?\]'
     results = []
     for m in re.finditer(pattern, latex):
-        results.append({"name": m.group(1), "page": int(m.group(2) or 1)})
+        results.append({
+            "name":   m.group(1),
+            "page":   int(m.group(2)),
+            "top":    float(m.group(3) or 0.0),
+            "left":   float(m.group(4) or 0.0),
+            "bottom": float(m.group(5) or 1.0),
+            "right":  float(m.group(6) or 1.0),
+        })
     return results
 
 
 def extract_figures_from_pdf(pdf_path: str, figure_specs: list[dict],
                               work_dir: str, dpi: int = 200) -> dict[str, str]:
     """
-    Returns {name: png_path} for successfully extracted figures.
-    Specs without a detected contour are omitted (placeholder stays).
+    Crop figures from PDF using Claude-provided fractional bounding boxes.
+    Returns {name: png_path} for each successfully cropped figure.
     """
     doc = fitz.open(pdf_path)
-    figure_map = {}
+    figure_map: dict[str, str] = {}
 
     for spec in figure_specs:
         name = spec["name"]
@@ -178,43 +197,20 @@ def extract_figures_from_pdf(pdf_path: str, figure_specs: list[dict],
         if page_idx >= len(doc):
             continue
 
-        # Render page at dpi
         page = doc[page_idx]
+        rect = page.rect  # full page rect in points
+
+        # Convert fractional bbox to absolute points
+        x0 = rect.x0 + spec["left"]   * rect.width
+        y0 = rect.y0 + spec["top"]    * rect.height
+        x1 = rect.x0 + spec["right"]  * rect.width
+        y1 = rect.y0 + spec["bottom"] * rect.height
+        clip = fitz.Rect(x0, y0, x1, y1)
+
         mat = fitz.Matrix(dpi / 72, dpi / 72)
-        pix = page.get_pixmap(matrix=mat, alpha=False)
-        img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width, 3)
-
-        # Threshold + morphological close to join figure marks into blobs
-        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (20, 20))
-        closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-
-        # Find contours
-        contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        # Filter: min 100pt × 100pt, max 95% page width, max 60% page height, aspect 0.2–5.0
-        MIN_PX = int(100 * dpi / 72)
-        candidates = []
-        for cnt in contours:
-            x, y, w, h = cv2.boundingRect(cnt)
-            if (MIN_PX <= w <= int(pix.width * 0.95) and
-                MIN_PX <= h <= int(pix.height * 0.6) and
-                0.2 <= w / h <= 5.0):
-                candidates.append((w * h, x, y, w, h))
-
-        if not candidates:
-            continue  # no figure found — keep placeholder
-
-        # Largest candidate + 5% padding
-        _, x, y, w, h = sorted(candidates, reverse=True)[0]
-        pad_x, pad_y = int(w * 0.05), int(h * 0.05)
-        x1 = max(0, x - pad_x); y1 = max(0, y - pad_y)
-        x2 = min(pix.width, x + w + pad_x); y2 = min(pix.height, y + h + pad_y)
-
-        cropped = img[y1:y2, x1:x2]
+        pix = page.get_pixmap(matrix=mat, clip=clip, alpha=False)
         out_path = os.path.join(work_dir, f"figure_{name}.png")
-        cv2.imwrite(out_path, cv2.cvtColor(cropped, cv2.COLOR_RGB2BGR))
+        pix.save(out_path)
         figure_map[name] = out_path
 
     doc.close()
@@ -226,7 +222,7 @@ def replace_figure_placeholders(latex: str, figure_map: dict[str, str]) -> str:
     Replace [FIGURE:name:pageN] fbox blocks with \\includegraphics for resolved figures.
     Unresolved placeholders left as-is.
     """
-    pattern = r'\\begin\{center\}\s*\\fbox\{.*?\[FIGURE:([\w_-]+)(?::page\d+)?\].*?\}\s*\\end\{center\}'
+    pattern = r'\\begin\{center\}\s*\\fbox\{.*?\[FIGURE:([\w_-]+):page\d+(?::[0-9.]+){0,4}\].*?\}\s*\\end\{center\}'
     def replacer(m: re.Match) -> str:
         name = m.group(1)
         if name in figure_map:
