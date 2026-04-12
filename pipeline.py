@@ -1,4 +1,5 @@
-import re, os, json, base64, subprocess, shutil
+import re, os, json, base64, subprocess, shutil, unicodedata
+from datetime import datetime
 import anthropic
 from anthropic.types import TextBlock
 import fitz
@@ -71,6 +72,24 @@ def clean_latex(raw: str) -> str:
     raw = re.sub(r'\\begin\{document\}', '', raw)
     raw = re.sub(r'\\end\{document\}', '', raw)
     return raw.strip()
+
+
+def make_exam_stem(subject: str, year: str) -> str:
+    """Build a clean ASCII filename stem from subject + year + date.
+    Example: 'رياضيات_2025_2026-04-13'
+    """
+    # Transliterate Arabic to ASCII where possible, else keep as-is then strip non-alphanum
+    try:
+        slug = unicodedata.normalize("NFKD", subject).encode("ascii", "ignore").decode()
+    except Exception:
+        slug = ""
+    slug = re.sub(r"[^\w]+", "_", slug).strip("_")
+    if not slug:
+        # Fall back to raw Arabic stripped of spaces — still meaningful in filenames
+        slug = re.sub(r"\s+", "_", subject.strip())
+    year_clean = re.sub(r"[^\w-]", "", year) or "unknown"
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    return f"{slug}_{year_clean}_{date_str}" if slug else f"exam_{year_clean}_{date_str}"
 
 
 def compress_pdf_bytes(pdf_bytes: bytes, dpi: int = 100) -> bytes:
@@ -367,7 +386,7 @@ def compile_pdfs(work_dir: str, subject: str, year: str, duration: str,
         sol_pdf = os.path.join(work_dir, "solution.pdf")
         if os.path.exists(sol_pdf):
             try:
-                stem = os.path.splitext(original_filename)[0]
+                stem = make_exam_stem(subject, year)
                 drive_url = upload_to_drive(sol_pdf, f"{stem}_solution.pdf")
                 qr_png = generate_qr_code(drive_url, os.path.join(work_dir, "qr_code.png"))
             except Exception as e:
@@ -467,7 +486,7 @@ def process_exam_pdf(pdf_bytes: bytes, work_dir: str,
         sol_pdf = os.path.join(work_dir, "solution.pdf")
         if os.path.exists(sol_pdf):
             try:
-                stem = os.path.splitext(original_filename)[0]
+                stem = make_exam_stem(subject, year)
                 drive_url = upload_to_drive(sol_pdf, f"{stem}_solution.pdf")
                 qr_png    = generate_qr_code(drive_url, os.path.join(work_dir, "qr_code.png"))
             except Exception as e:
@@ -489,10 +508,12 @@ def process_exam_pdf(pdf_bytes: bytes, work_dir: str,
     if not ok:
         raise RuntimeError(f"subject.pdf compilation failed: {err}")
 
+    stem = make_exam_stem(subject, year)
     return {
         "subject":           subject,
         "year":              year,
         "duration":          duration,
+        "stem":              stem,
         "subject_pdf":       os.path.join(work_dir, "subject.pdf"),
         "solution_pdf":      os.path.join(work_dir, "solution.pdf") if solution.strip() else None,
         "drive_url":         drive_url,

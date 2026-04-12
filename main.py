@@ -72,6 +72,10 @@ async def process_exam(file: UploadFile = File(...)):
     print(f"  subject: {result['subject']} | year: {result['year']}")
     print(f"  figures: {result['figures_extracted']}/{result['figures_total']}")
     print(f"  cost:    ${result.get('cost_usd', 0):.4f}")
+    print(f"  stem:    {result.get('stem', '')}")
+    # Persist stem so file-serving routes can name the download
+    with open(os.path.join(work_dir, "state.json"), "w", encoding="utf-8") as f:
+        json.dump({"stem": result.get("stem", "exam")}, f)
     return JSONResponse(content={
         "job_id":            job_id,
         "needs_crop":        False,
@@ -83,6 +87,7 @@ async def process_exam(file: UploadFile = File(...)):
         "figures_total":     result["figures_total"],
         "has_solution":      result["solution_pdf"] is not None,
         "cost_usd":          result.get("cost_usd", 0),
+        "stem":              result.get("stem", "exam"),
     })
 
 
@@ -199,12 +204,22 @@ async def skip_crops(job_id: str):
 
 # ── File serving ──────────────────────────────────────────────────────────────
 
+def _get_stem(job_id: str) -> str:
+    state_path = os.path.join("outputs", job_id, "state.json")
+    try:
+        with open(state_path, encoding="utf-8") as f:
+            return json.load(f).get("stem", "exam")
+    except Exception:
+        return "exam"
+
+
 @app.get("/outputs/{job_id}/subject.pdf")
 async def get_subject_pdf(job_id: str):
     path = os.path.join("outputs", job_id, "subject.pdf")
     if not os.path.exists(path):
         return JSONResponse(status_code=404, content={"error": "not found"})
-    return FileResponse(path, media_type="application/pdf", filename="subject.pdf")
+    stem = _get_stem(job_id)
+    return FileResponse(path, media_type="application/pdf", filename=f"{stem}_subject.pdf")
 
 
 @app.get("/outputs/{job_id}/solution.pdf")
@@ -212,7 +227,8 @@ async def get_solution_pdf(job_id: str):
     path = os.path.join("outputs", job_id, "solution.pdf")
     if not os.path.exists(path):
         return JSONResponse(status_code=404, content={"error": "not found"})
-    return FileResponse(path, media_type="application/pdf", filename="solution.pdf")
+    stem = _get_stem(job_id)
+    return FileResponse(path, media_type="application/pdf", filename=f"{stem}_solution.pdf")
 
 
 @app.get("/outputs/{job_id}/state.json")
