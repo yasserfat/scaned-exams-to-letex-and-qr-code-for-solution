@@ -319,8 +319,18 @@
           return;
         }
 
-        const { job_id, subject, year, duration, drive_url,
+        const { job_id, needs_crop, subject, year, duration, drive_url,
                 figures_extracted, figures_total, has_solution } = data;
+
+        // If figures need manual cropping, redirect to crop UI
+        if (needs_crop) {
+          setStep('step1', 'done', `${subject} | ${year}`);
+          setStep('step2', 'done', 'استخرج Claude المحتوى');
+          setStep('step3', 'active', 'تحديد الصور يدوياً...');
+          showFinal(`تم اكتشاف ${data.figure_specs.length} صورة — جاري فتح أداة التحديد...`, 'success');
+          setTimeout(() => { window.location.href = `/crop.html?job=${job_id}`; }, 800);
+          return;
+        }
 
         // Mark steps based on what actually happened
         setStep('step1', 'done', `${subject} | ${year}`);
