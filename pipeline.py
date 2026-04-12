@@ -249,6 +249,8 @@ def upload_to_drive(local_pdf_path: str, filename: str,
                     folder_id: str | None = None) -> str:
     """Upload to Drive via service account. Returns shareable URL."""
     creds_path = os.environ.get("GOOGLE_DRIVE_CREDENTIALS")
+    if creds_path and not os.path.isabs(creds_path):
+        creds_path = os.path.join(os.path.dirname(__file__), creds_path)
     if not creds_path or not os.path.exists(creds_path):
         raise RuntimeError("GOOGLE_DRIVE_CREDENTIALS not set or file not found")
     creds = service_account.Credentials.from_service_account_file(

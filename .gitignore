@@ -1,0 +1,7 @@
+.env
+*.json
+__pycache__/
+*.pyc
+exams_input/
+exams_output/
+jobs/
