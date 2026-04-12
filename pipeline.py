@@ -85,4 +85,7 @@ def extract_all_from_pdf(pdf_b64: str) -> dict:
             {"type": "text", "text": "Extract all content from this exam PDF and return the unified JSON."}
         ]}]
     )
-    return json.loads(clean_json_response(msg.content[0].text))
+    block = msg.content[0]
+    if not hasattr(block, "text"):
+        raise ValueError(f"Unexpected response block type: {type(block)}")
+    return json.loads(clean_json_response(block.text))
