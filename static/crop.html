@@ -318,6 +318,7 @@ async function init() {
 
   figures = state.figure_specs.map(s => ({
     name:        s.name,
+    label:       s.label || '',
     page:        s.page,
     top:         s.top,
     left:        s.left,
@@ -366,8 +367,9 @@ function renderFigureList() {
   figures.forEach((f, i) => {
     const el = document.createElement('div');
     el.className = 'figure-item' + (f.cropped ? ' done' : '') + (currentFig === i ? ' active' : '');
+    const displayName = f.label || f.name;
     el.innerHTML = `
-      <div class="fig-name">${f.name}</div>
+      <div class="fig-name">${displayName}</div>
       <div class="fig-page">صفحة ${f.page}</div>
       <div class="fig-status">${f.cropped ? '✓ تم التحديد' : '○ في انتظار التحديد'}</div>
     `;
@@ -394,7 +396,8 @@ function selectFigure(i) {
   }
 
   renderFigureList();
-  instruction.textContent = `اسحب لتحديد منطقة "${figures[i].name}"`;
+  const label = figures[i].label || figures[i].name;
+  instruction.textContent = `اسحب لتحديد منطقة "${label}"`;
 }
 
 // ── Canvas drawing ────────────────────────────────────────────────────────────
@@ -441,8 +444,8 @@ function redrawAll() {
 
     // Label
     drawCtx.fillStyle = i === currentFig ? '#3b82f6' : '#22c55e';
-    drawCtx.font = 'bold 12px monospace';
-    drawCtx.fillText(f.name, tl.x + 4, tl.y - 4);
+    drawCtx.font = 'bold 13px Arial';
+    drawCtx.fillText(f.label || f.name, tl.x + 4, tl.y - 4);
   });
 }
 

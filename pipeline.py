@@ -1,4 +1,4 @@
-import re, os, json, base64, subprocess, shutil, uuid
+import re, os, json, base64, subprocess, shutil
 import anthropic
 from anthropic.types import TextBlock
 import fitz
@@ -37,15 +37,16 @@ RULES FOR exam AND solution FIELDS:
 - NEVER use Unicode special symbols that may not render in Arabic fonts. Use LaTeX equivalents.
 - Complex figures (circuits, diagrams, drawings, photos, tables-with-images): use this placeholder:
     \\begin{center}
-    \\fbox{\\parbox{7cm}{\\centering\\textbf{[FIGURE:name:pageN:top:left:bottom:right]}\\\\[4pt]{\\small أرفق الصورة هنا}}}
+    \\fbox{\\parbox{7cm}{\\centering\\textbf{[FIGURE:name:label:pageN:top:left:bottom:right]}\\\\[4pt]{\\small أرفق الصورة هنا}}}
     \\end{center}
   where:
     - name = short snake_case identifier (e.g. circuit_1, bottles, inclined_plane)
+    - label = short Arabic human-readable description of the figure (e.g. دارة كهربائية, مستوى مائل, قنينة)
     - N = 1-based page number in the input PDF where the figure appears
     - top, left, bottom, right = bounding box as decimal fractions 0.0–1.0 of the PAGE dimensions
       (0,0 = top-left corner of the page; 1,1 = bottom-right corner)
       Be precise — only include the figure/diagram region, NOT surrounding text or labels.
-  Example: [FIGURE:circuit_1:page1:0.10:0.00:0.45:0.60]
+  Example: [FIGURE:circuit_1:دارة كهربائية:page1:0.10:0.00:0.45:0.60]
 - exam: questions section only. No header table. Start with first \\section*.
 - solution: solution/correction section only. If absent: return string NO_SOLUTION.
 """
@@ -70,7 +71,7 @@ def clean_latex(raw: str) -> str:
     return raw.strip()
 
 
-def compress_pdf_bytes(pdf_bytes: bytes, dpi: int = 150) -> bytes:
+def compress_pdf_bytes(pdf_bytes: bytes, dpi: int = 100) -> bytes:
     """Re-render each PDF page at lower DPI using PyMuPDF to reduce file size."""
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     out = fitz.open()
@@ -90,7 +91,11 @@ def extract_all_from_pdf(pdf_b64: str) -> dict:
     msg = _client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=20000,
-        system=SYSTEM_PROMPT_UNIFIED,
+        system=[{
+            "type": "text",
+            "text": SYSTEM_PROMPT_UNIFIED,
+            "cache_control": {"type": "ephemeral"},  # cached at $0.30/M instead of $3/M
+        }],
         messages=[{"role": "user", "content": [
             {"type": "document", "source": {"type": "base64",
              "media_type": "application/pdf", "data": pdf_b64}},
@@ -164,20 +169,26 @@ def compile_latex(latex_code: str, work_dir: str,
 
 def parse_figure_placeholders(latex: str) -> list[dict]:
     """
-    Returns [{"name": str, "page": int, "top": float, "left": float,
+    Returns [{"name": str, "label": str, "page": int, "top": float, "left": float,
               "bottom": float, "right": float}, ...]
+    label is the Arabic human-readable display name (may be absent in old format).
     All bbox fields default to full-page (0.0/1.0) when absent.
     """
-    pattern = r'\[FIGURE:([\w_-]+):page(\d+)(?::([0-9.]+):([0-9.]+):([0-9.]+):([0-9.]+))?\]'
+    # New format: [FIGURE:name:label:pageN:top:left:bottom:right]
+    # Old format: [FIGURE:name:pageN:top:left:bottom:right]  (no label)
+    pattern = r'\[FIGURE:([\w_-]+):((?:[^:\]]*?):)?page(\d+)(?::([0-9.]+):([0-9.]+):([0-9.]+):([0-9.]+))?\]'
     results = []
     for m in re.finditer(pattern, latex):
+        label_raw = m.group(2) or ""
+        label = label_raw.rstrip(":").strip()
         results.append({
             "name":   m.group(1),
-            "page":   int(m.group(2)),
-            "top":    float(m.group(3) or 0.0),
-            "left":   float(m.group(4) or 0.0),
-            "bottom": float(m.group(5) or 1.0),
-            "right":  float(m.group(6) or 1.0),
+            "label":  label,
+            "page":   int(m.group(3)),
+            "top":    float(m.group(4) or 0.0),
+            "left":   float(m.group(5) or 0.0),
+            "bottom": float(m.group(6) or 1.0),
+            "right":  float(m.group(7) or 1.0),
         })
     return results
 
@@ -222,7 +233,7 @@ def replace_figure_placeholders(latex: str, figure_map: dict[str, str]) -> str:
     Replace [FIGURE:name:pageN] fbox blocks with \\includegraphics for resolved figures.
     Unresolved placeholders left as-is.
     """
-    pattern = r'\\begin\{center\}\s*\\fbox\{.*?\[FIGURE:([\w_-]+):page\d+(?::[0-9.]+){0,4}\].*?\}\s*\\end\{center\}'
+    pattern = r'\\begin\{center\}\s*\\fbox\{.*?\[FIGURE:([\w_-]+):[^\]]*\].*?\}\s*\\end\{center\}'
     def replacer(m: re.Match) -> str:
         name = m.group(1)
         if name in figure_map:
@@ -273,6 +284,11 @@ def generate_qr_code(url: str, output_path: str) -> str:
     return output_path
 
 
+def generate_placeholder_qr(output_path: str) -> str:
+    """Generate a placeholder QR code for when Drive isn't configured yet."""
+    return generate_qr_code("https://example.com/solution-coming-soon", output_path)
+
+
 # ── Page rendering ────────────────────────────────────────────────────────────
 
 def render_page_images(pdf_path: str, work_dir: str, dpi: int = 150) -> list[str]:
@@ -315,6 +331,11 @@ def compile_pdfs(work_dir: str, subject: str, year: str, duration: str,
                 qr_png = generate_qr_code(drive_url, os.path.join(work_dir, "qr_code.png"))
             except Exception as e:
                 print(f"  WARNING: Drive upload failed: {e}")
+                # Still generate a placeholder QR so the layout is visible
+                try:
+                    qr_png = generate_placeholder_qr(os.path.join(work_dir, "qr_code.png"))
+                except Exception:
+                    pass
 
     qr_rel = "qr_code.png" if (qr_png and os.path.exists(qr_png)) else None
     subj_latex = build_subject_latex(subject, year, duration, exam, qr_rel)
@@ -409,6 +430,11 @@ def process_exam_pdf(pdf_bytes: bytes, work_dir: str,
                 qr_png    = generate_qr_code(drive_url, os.path.join(work_dir, "qr_code.png"))
             except Exception as e:
                 print(f"  WARNING: Drive upload failed: {e}")
+                # Still generate a placeholder QR so the layout is visible
+                try:
+                    qr_png = generate_placeholder_qr(os.path.join(work_dir, "qr_code.png"))
+                except Exception:
+                    pass
 
     # 6. Compile subject.pdf with QR (Fix 1 + Fix 2)
     qr_rel = "qr_code.png" if (qr_png and os.path.exists(qr_png)) else None
