@@ -232,3 +232,44 @@ def replace_figure_placeholders(latex: str, figure_map: dict[str, str]) -> str:
             return rf"\begin{{center}}\includegraphics[width=0.8\textwidth]{{{fname}}}\end{{center}}"
         return m.group(0)  # keep placeholder
     return re.sub(pattern, replacer, latex, flags=re.DOTALL)
+
+
+# ── Drive & QR ────────────────────────────────────────────────────────────────
+
+def upload_to_drive(local_pdf_path: str, filename: str,
+                    folder_id: str | None = None) -> str:
+    """Upload to Drive via service account. Returns shareable URL."""
+    creds_path = os.environ.get("GOOGLE_DRIVE_CREDENTIALS")
+    if not creds_path or not os.path.exists(creds_path):
+        raise RuntimeError("GOOGLE_DRIVE_CREDENTIALS not set or file not found")
+    creds = service_account.Credentials.from_service_account_file(
+        creds_path, scopes=["https://www.googleapis.com/auth/drive"])
+    service = build("drive", "v3", credentials=creds)
+
+    folder_id = folder_id or os.environ.get("GOOGLE_DRIVE_FOLDER_ID")
+    metadata: dict = {"name": filename}
+    if folder_id:
+        metadata["parents"] = [folder_id]
+
+    media = MediaFileUpload(local_pdf_path, mimetype="application/pdf", resumable=True)
+    file_obj = service.files().create(body=metadata, media_body=media, fields="id").execute()
+    file_id = file_obj["id"]
+
+    if os.environ.get("GOOGLE_DRIVE_PUBLIC", "true").lower() == "true":
+        service.permissions().create(
+            fileId=file_id, body={"role": "reader", "type": "anyone"}
+        ).execute()
+
+    return f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
+
+
+def generate_qr_code(url: str, output_path: str) -> str:
+    """Generate QR PNG at output_path. Returns output_path."""
+    qr = qrcode.QRCode(
+        version=1, error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=6, border=2)
+    qr.add_data(url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    img.save(output_path)
+    return output_path
