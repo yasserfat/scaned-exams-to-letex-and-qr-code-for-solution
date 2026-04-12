@@ -91,3 +91,60 @@ def extract_all_from_pdf(pdf_b64: str) -> dict:
     if not isinstance(block, TextBlock):
         raise ValueError(f"Unexpected response block type: {type(block)}")
     return json.loads(clean_json_response(block.text))
+
+
+# ── LaTeX builders ────────────────────────────────────────────────────────────
+
+def build_subject_latex(subject: str, year: str, duration: str,
+                        exam_content: str,
+                        qr_image_path: str | None = None) -> str:
+    qr_block = (
+        r"\vspace{1cm}" "\n"
+        r"\begin{center}" "\n"
+        r"  {\small رمز الاستجابة السريعة للوصول إلى التصحيح النموذجي}\\[0.4em]" "\n"
+        rf"  \includegraphics[width=3cm]{{{qr_image_path}}}" "\n"
+        r"\end{center}"
+    ) if qr_image_path else ""
+    latex = SUBJECT_TEMPLATE
+    latex = latex.replace("%%SUBJECT%%",      subject.strip()  or "الرياضيات")
+    latex = latex.replace("%%YEAR%%",         year.strip()     or "----")
+    latex = latex.replace("%%DURATION%%",     duration.strip() or "----")
+    latex = latex.replace("%%EXAM_CONTENT%%", clean_latex(exam_content))
+    latex = latex.replace("%%QR_CODE%%",      qr_block)
+    return latex
+
+
+def build_solution_latex(subject: str, year: str, duration: str,
+                         solution_content: str) -> str:
+    latex = SOLUTION_TEMPLATE
+    latex = latex.replace("%%SUBJECT%%",          subject.strip()  or "الرياضيات")
+    latex = latex.replace("%%YEAR%%",             year.strip()     or "----")
+    latex = latex.replace("%%DURATION%%",         duration.strip() or "----")
+    latex = latex.replace("%%SOLUTION_CONTENT%%", clean_latex(solution_content))
+    return latex
+
+
+def compile_latex(latex_code: str, work_dir: str,
+                  out_stem: str = "exam") -> tuple[bool, str]:
+    """Write {out_stem}.tex, run xelatex twice, return (success, error_log)."""
+    os.makedirs(work_dir, exist_ok=True)
+    if os.path.exists("logo.png"):
+        shutil.copy("logo.png", os.path.join(work_dir, "logo.png"))
+    tex_path = os.path.join(work_dir, f"{out_stem}.tex")
+    with open(tex_path, "w", encoding="utf-8") as f:
+        f.write(latex_code)
+    for _ in range(2):
+        subprocess.run(
+            ["xelatex", "-interaction=nonstopmode", f"{out_stem}.tex"],
+            cwd=work_dir, capture_output=True, timeout=120
+        )
+    pdf_path = os.path.join(work_dir, f"{out_stem}.pdf")
+    if not os.path.exists(pdf_path):
+        log_path = os.path.join(work_dir, f"{out_stem}.log")
+        if os.path.exists(log_path):
+            log_text = open(log_path, encoding="utf-8", errors="ignore").read()
+            error_lines = [l for l in log_text.splitlines()
+                           if l.startswith("!") or "Error" in l]
+            return False, "\n".join(error_lines)
+        return False, "PDF not created and no log found"
+    return True, ""
