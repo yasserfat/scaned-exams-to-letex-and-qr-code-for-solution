@@ -320,7 +320,7 @@
         }
 
         const { job_id, needs_crop, subject, year, duration, drive_url,
-                figures_extracted, figures_total, has_solution } = data;
+                figures_extracted, figures_total, has_solution, cost_usd } = data;
 
         // If figures need manual cropping, redirect to crop UI
         if (needs_crop) {
@@ -384,6 +384,7 @@
         showFinal('تمت المعالجة بنجاح', 'success');
         log(`job_id: ${job_id}`);
         log(`figures: ${figures_extracted}/${figures_total}`);
+        if (cost_usd != null) log(`cost: $${cost_usd.toFixed(4)}`);
         if (drive_url) log(`drive: ${drive_url}`);
         btn.disabled = false;
       });

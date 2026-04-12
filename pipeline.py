@@ -105,7 +105,27 @@ def extract_all_from_pdf(pdf_b64: str) -> dict:
     block = msg.content[0]
     if not isinstance(block, TextBlock):
         raise ValueError(f"Unexpected response block type: {type(block)}")
-    return json.loads(clean_json_response(block.text))
+
+    u = msg.usage
+    # Sonnet 4.6 pricing (per million tokens)
+    # Input: $3.00, cache write: $3.75, cache read: $0.30, output: $15.00
+    cost_usd = (
+        getattr(u, "input_tokens", 0)               * 3.00  / 1_000_000
+        + getattr(u, "cache_creation_input_tokens", 0) * 3.75  / 1_000_000
+        + getattr(u, "cache_read_input_tokens", 0)    * 0.30  / 1_000_000
+        + getattr(u, "output_tokens", 0)              * 15.00 / 1_000_000
+    )
+    print(
+        f"  Claude usage — in:{getattr(u,'input_tokens',0)} "
+        f"cache_write:{getattr(u,'cache_creation_input_tokens',0)} "
+        f"cache_read:{getattr(u,'cache_read_input_tokens',0)} "
+        f"out:{getattr(u,'output_tokens',0)} "
+        f"| cost: ${cost_usd:.4f}"
+    )
+
+    result = json.loads(clean_json_response(block.text))
+    result["_cost_usd"] = cost_usd
+    return result
 
 
 # ── LaTeX builders ────────────────────────────────────────────────────────────
@@ -372,7 +392,8 @@ def process_exam_pdf(pdf_bytes: bytes, work_dir: str,
     pdf_b64 = base64.b64encode(data).decode()
 
     # 2. Single Claude call (Fix 3)
-    extracted = extract_all_from_pdf(pdf_b64)
+    extracted  = extract_all_from_pdf(pdf_b64)
+    cost_usd   = extracted.pop("_cost_usd", 0.0)
     subject  = extracted.get("subject", "")
     year     = extracted.get("year", "----")
     duration = extracted.get("duration", "----")
@@ -459,4 +480,5 @@ def process_exam_pdf(pdf_bytes: bytes, work_dir: str,
         "qr_png":            qr_png,
         "figures_extracted": figures_extracted,
         "figures_total":     figures_total,
+        "cost_usd":          cost_usd,
     }

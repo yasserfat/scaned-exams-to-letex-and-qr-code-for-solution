@@ -54,6 +54,7 @@ for i, filename in enumerate(files, 1):
 
         print(f"  Subject:  {result['subject']} | {result['year']}")
         print(f"  Figures:  {result['figures_extracted']}/{result['figures_total']}")
+        print(f"  Cost:     ${result.get('cost_usd', 0):.4f}")
         if result["drive_url"]:
             print(f"  Drive:    {result['drive_url']}")
 

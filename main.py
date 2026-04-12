@@ -71,6 +71,7 @@ async def process_exam(file: UploadFile = File(...)):
     # No figures — PDFs already compiled
     print(f"  subject: {result['subject']} | year: {result['year']}")
     print(f"  figures: {result['figures_extracted']}/{result['figures_total']}")
+    print(f"  cost:    ${result.get('cost_usd', 0):.4f}")
     return JSONResponse(content={
         "job_id":            job_id,
         "needs_crop":        False,
@@ -81,6 +82,7 @@ async def process_exam(file: UploadFile = File(...)):
         "figures_extracted": result["figures_extracted"],
         "figures_total":     result["figures_total"],
         "has_solution":      result["solution_pdf"] is not None,
+        "cost_usd":          result.get("cost_usd", 0),
     })
 
 
