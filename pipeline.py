@@ -4,7 +4,9 @@ from anthropic.types import TextBlock
 import fitz
 import qrcode
 import qrcode.constants
-from google.oauth2 import service_account
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from dotenv import load_dotenv
@@ -258,24 +260,46 @@ def replace_figure_placeholders(latex: str, figure_map: dict[str, str]) -> str:
         name = m.group(1)
         if name in figure_map:
             fname = os.path.basename(figure_map[name])
-            return rf"\begin{{center}}\includegraphics[width=0.8\textwidth]{{{fname}}}\end{{center}}"
+            return (
+                r"\begin{wrapfigure}{r}{0.4\textwidth}"
+                r"\centering"
+                rf"\includegraphics[width=0.38\textwidth]{{{fname}}}"
+                r"\end{wrapfigure}"
+            )
         return m.group(0)  # keep placeholder
     return re.sub(pattern, replacer, latex, flags=re.DOTALL)
 
 
 # ── Drive & QR ────────────────────────────────────────────────────────────────
 
+_SCOPES      = ["https://www.googleapis.com/auth/drive.file"]
+_BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
+_OAUTH_CLIENT = os.path.join(_BASE_DIR, "oauth_client.json")
+_TOKEN_FILE   = os.path.join(_BASE_DIR, "token.json")
+
+
+def _get_drive_service():
+    """Return an authenticated Drive service using OAuth2 (user account)."""
+    creds = None
+    if os.path.exists(_TOKEN_FILE):
+        creds = Credentials.from_authorized_user_file(_TOKEN_FILE, _SCOPES)
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            if not os.path.exists(_OAUTH_CLIENT):
+                raise RuntimeError("oauth_client.json not found — add OAuth credentials to the project folder")
+            flow = InstalledAppFlow.from_client_secrets_file(_OAUTH_CLIENT, _SCOPES)
+            creds = flow.run_local_server(port=0)
+        with open(_TOKEN_FILE, "w") as f:
+            f.write(creds.to_json())
+    return build("drive", "v3", credentials=creds)
+
+
 def upload_to_drive(local_pdf_path: str, filename: str,
                     folder_id: str | None = None) -> str:
-    """Upload to Drive via service account. Returns shareable URL."""
-    creds_path = os.environ.get("GOOGLE_DRIVE_CREDENTIALS")
-    if creds_path and not os.path.isabs(creds_path):
-        creds_path = os.path.join(os.path.dirname(__file__), creds_path)
-    if not creds_path or not os.path.exists(creds_path):
-        raise RuntimeError("GOOGLE_DRIVE_CREDENTIALS not set or file not found")
-    creds = service_account.Credentials.from_service_account_file(
-        creds_path, scopes=["https://www.googleapis.com/auth/drive"])
-    service = build("drive", "v3", credentials=creds)
+    """Upload to Drive via OAuth user account. Returns shareable URL."""
+    service = _get_drive_service()
 
     folder_id = folder_id or os.environ.get("GOOGLE_DRIVE_FOLDER_ID")
     metadata: dict = {"name": filename}
