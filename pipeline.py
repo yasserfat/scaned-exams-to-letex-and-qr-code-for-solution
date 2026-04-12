@@ -1,7 +1,9 @@
 import re, os, json, base64, subprocess, shutil, uuid
 import anthropic
 from anthropic.types import TextBlock
-import fitz, cv2, numpy as np, qrcode
+import fitz, cv2, numpy as np
+import qrcode
+import qrcode.constants
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
@@ -224,7 +226,7 @@ def replace_figure_placeholders(latex: str, figure_map: dict[str, str]) -> str:
     Replace [FIGURE:name:pageN] fbox blocks with \\includegraphics for resolved figures.
     Unresolved placeholders left as-is.
     """
-    pattern = r'\\begin\{center\}\s*\\fbox\{[^}]*\[FIGURE:([\w_-]+)(?::page\d+)?\][^}]*\}\s*\\end\{center\}'
+    pattern = r'\\begin\{center\}\s*\\fbox\{.*?\[FIGURE:([\w_-]+)(?::page\d+)?\].*?\}\s*\\end\{center\}'
     def replacer(m: re.Match) -> str:
         name = m.group(1)
         if name in figure_map:
@@ -271,5 +273,5 @@ def generate_qr_code(url: str, output_path: str) -> str:
     qr.add_data(url)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
-    img.save(output_path)
+    img.get_image().save(output_path)
     return output_path
