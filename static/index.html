@@ -5,12 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>معالج الامتحانات</title>
     <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-
+      * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
         font-family: Arial, sans-serif;
         background: #f1f5f9;
@@ -20,26 +15,16 @@
         justify-content: center;
         padding: 20px;
       }
-
       .card {
         background: white;
         border-radius: 16px;
         padding: 40px;
         width: 100%;
-        max-width: 580px;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+        max-width: 600px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08);
       }
-
-      h2 {
-        font-size: 22px;
-        color: #1e293b;
-        margin-bottom: 8px;
-      }
-      p.subtitle {
-        color: #64748b;
-        font-size: 14px;
-        margin-bottom: 28px;
-      }
+      h2 { font-size: 22px; color: #1e293b; margin-bottom: 8px; }
+      p.subtitle { color: #64748b; font-size: 14px; margin-bottom: 28px; }
 
       #dropzone {
         border: 2px dashed #cbd5e1;
@@ -51,19 +36,9 @@
         color: #94a3b8;
         margin-bottom: 20px;
       }
-      #dropzone:hover,
-      #dropzone.hover {
-        border-color: #2563eb;
-        background: #eff6ff;
-        color: #2563eb;
-      }
-      #dropzone .icon {
-        font-size: 36px;
-        margin-bottom: 8px;
-      }
-      #dropzone p {
-        font-size: 14px;
-      }
+      #dropzone:hover, #dropzone.hover { border-color: #2563eb; background: #eff6ff; color: #2563eb; }
+      #dropzone .icon { font-size: 36px; margin-bottom: 8px; }
+      #dropzone p { font-size: 14px; }
 
       #fileInfo {
         display: none;
@@ -87,20 +62,10 @@
         cursor: pointer;
         transition: background 0.2s;
       }
-      button:hover:not(:disabled) {
-        background: #1d4ed8;
-      }
-      button:disabled {
-        background: #93c5fd;
-        cursor: not-allowed;
-      }
+      button:hover:not(:disabled) { background: #1d4ed8; }
+      button:disabled { background: #93c5fd; cursor: not-allowed; }
 
-      /* Steps */
-      #steps {
-        display: none;
-        margin-top: 24px;
-      }
-
+      #steps { display: none; margin-top: 24px; }
       .step {
         display: flex;
         align-items: flex-start;
@@ -110,76 +75,37 @@
         font-size: 14px;
         color: #64748b;
       }
-      .step:last-child {
-        border-bottom: none;
-      }
-
+      .step:last-child { border-bottom: none; }
       .step-icon {
-        width: 24px;
-        height: 24px;
+        width: 24px; height: 24px;
         border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13px;
-        flex-shrink: 0;
-        margin-top: 1px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 13px; flex-shrink: 0; margin-top: 1px;
       }
-
-      .step.waiting .step-icon {
-        background: #e2e8f0;
-        color: #94a3b8;
-      }
-      .step.active .step-icon {
-        background: #fef9c3;
-      }
-      .step.done .step-icon {
-        background: #dcfce7;
-      }
-      .step.failed .step-icon {
-        background: #fee2e2;
-      }
-
-      .step.active {
-        color: #854d0e;
-      }
-      .step.done {
-        color: #166534;
-      }
-      .step.failed {
-        color: #991b1b;
-      }
-
-      .step-text {
-        flex: 1;
-        line-height: 1.5;
-      }
+      .step.waiting .step-icon { background: #e2e8f0; color: #94a3b8; }
+      .step.active  .step-icon { background: #fef9c3; }
+      .step.done    .step-icon { background: #dcfce7; }
+      .step.skipped .step-icon { background: #f1f5f9; color: #94a3b8; }
+      .step.failed  .step-icon { background: #fee2e2; }
+      .step.active  { color: #854d0e; }
+      .step.done    { color: #166534; }
+      .step.skipped { color: #94a3b8; }
+      .step.failed  { color: #991b1b; }
+      .step-text { flex: 1; line-height: 1.5; }
       .step-detail {
-        font-size: 12px;
-        color: #94a3b8;
-        margin-top: 2px;
-        font-family: monospace;
-        direction: ltr;
-        text-align: left;
+        font-size: 12px; color: #94a3b8; margin-top: 2px;
+        font-family: monospace; direction: ltr; text-align: left;
       }
-      .step.failed .step-detail {
-        color: #f87171;
-      }
-
+      .step.failed .step-detail { color: #f87171; }
       .spinner {
-        width: 14px;
-        height: 14px;
+        width: 14px; height: 14px;
         border: 2px solid #854d0e;
         border-top-color: transparent;
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
         display: inline-block;
       }
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
+      @keyframes spin { to { transform: rotate(360deg); } }
 
       #finalStatus {
         display: none;
@@ -189,18 +115,38 @@
         font-size: 14px;
         text-align: center;
       }
-      .success {
-        background: #dcfce7;
-        color: #166534;
-        border: 1px solid #bbf7d0;
+      .success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+      .error   { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+      #downloads {
+        display: none;
+        margin-top: 16px;
+        display: none;
+        gap: 10px;
+        flex-direction: column;
       }
-      .error {
-        background: #fee2e2;
-        color: #991b1b;
-        border: 1px solid #fecaca;
+      .dl-btn {
+        display: block;
+        padding: 12px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 15px;
+        text-align: center;
+        font-weight: bold;
+      }
+      .dl-subject  { background: #2563eb; color: white; }
+      .dl-solution { background: #059669; color: white; }
+      .dl-drive    { background: #f59e0b; color: white; }
+      .dl-btn:hover { opacity: 0.9; }
+
+      #figureInfo {
+        display: none;
+        margin-top: 8px;
+        font-size: 13px;
+        color: #64748b;
+        text-align: center;
       }
 
-      /* Debug log */
       #debugBox {
         display: none;
         margin-top: 16px;
@@ -221,237 +167,214 @@
   </head>
   <body>
     <div class="card">
-      <h2>🖨️ معالج الامتحانات الممسوحة</h2>
-      <p class="subtitle">
-        ارفع ملف PDF ممسوح ضوئياً وسيتم إنتاج نسخة نظيفة جاهزة للطباعة
-      </p>
+      <h2>معالج الامتحانات الممسوحة</h2>
+      <p class="subtitle">ارفع ملف PDF ممسوح ضوئياً وسيتم إنتاج ورقة الامتحان والتصحيح النموذجي</p>
 
       <div id="dropzone">
         <div class="icon">📄</div>
         <p>اسحب ملف PDF هنا أو انقر للاختيار</p>
-        <input type="file" id="pdfInput" accept=".pdf" style="display: none" />
+        <input type="file" id="pdfInput" accept=".pdf" style="display:none" />
       </div>
 
       <div id="fileInfo">📎 <span id="fileName"></span></div>
 
       <button id="processBtn" disabled>معالجة الامتحان</button>
 
-      <!-- Step indicators -->
       <div id="steps">
         <div class="step waiting" id="step1">
           <div class="step-icon">1</div>
-          <div class="step-text">
-            استخراج البيانات (المادة، السنة، المدة)
-            <div class="step-detail" id="step1-detail"></div>
-          </div>
+          <div class="step-text">رفع ومعالجة الملف<div class="step-detail" id="d1"></div></div>
         </div>
         <div class="step waiting" id="step2">
           <div class="step-icon">2</div>
-          <div class="step-text">
-            استخراج أسئلة الامتحان
-            <div class="step-detail" id="step2-detail"></div>
-          </div>
+          <div class="step-text">استخراج المحتوى (Claude)<div class="step-detail" id="d2"></div></div>
         </div>
         <div class="step waiting" id="step3">
           <div class="step-icon">3</div>
-          <div class="step-text">
-            استخراج التصحيح النموذجي
-            <div class="step-detail" id="step3-detail"></div>
-          </div>
+          <div class="step-text">استخراج الصور التلقائي<div class="step-detail" id="d3"></div></div>
         </div>
         <div class="step waiting" id="step4">
           <div class="step-icon">4</div>
-          <div class="step-text">
-            تحويل LaTeX إلى PDF
-            <div class="step-detail" id="step4-detail"></div>
-          </div>
+          <div class="step-text">توليد ملف التصحيح<div class="step-detail" id="d4"></div></div>
         </div>
         <div class="step waiting" id="step5">
           <div class="step-icon">5</div>
-          <div class="step-text">
-            تحميل الملف النهائي
-            <div class="step-detail" id="step5-detail"></div>
-          </div>
+          <div class="step-text">رفع التصحيح إلى Google Drive<div class="step-detail" id="d5"></div></div>
+        </div>
+        <div class="step waiting" id="step6">
+          <div class="step-icon">6</div>
+          <div class="step-text">توليد رمز QR<div class="step-detail" id="d6"></div></div>
+        </div>
+        <div class="step waiting" id="step7">
+          <div class="step-icon">7</div>
+          <div class="step-text">توليد ورقة الامتحان النهائية<div class="step-detail" id="d7"></div></div>
         </div>
       </div>
 
       <div id="finalStatus"></div>
+
+      <div id="downloads">
+        <a id="dlSubject"  class="dl-btn dl-subject"  href="#" target="_blank">تحميل ورقة الامتحان</a>
+        <a id="dlSolution" class="dl-btn dl-solution" href="#" target="_blank" style="display:none">تحميل التصحيح النموذجي</a>
+        <a id="dlDrive"    class="dl-btn dl-drive"    href="#" target="_blank" style="display:none">فتح التصحيح على Google Drive</a>
+      </div>
+
+      <div id="figureInfo"></div>
       <div id="debugBox"></div>
     </div>
 
     <script>
-      const dropzone = document.getElementById("dropzone");
-      const input = document.getElementById("pdfInput");
-      const btn = document.getElementById("processBtn");
-      const fileInfo = document.getElementById("fileInfo");
-      const fileName = document.getElementById("fileName");
-      const stepsDiv = document.getElementById("steps");
-      const finalStatus = document.getElementById("finalStatus");
-      const debugBox = document.getElementById("debugBox");
+      const dropzone   = document.getElementById('dropzone');
+      const input      = document.getElementById('pdfInput');
+      const btn        = document.getElementById('processBtn');
+      const fileInfo   = document.getElementById('fileInfo');
+      const fileName   = document.getElementById('fileName');
+      const stepsDiv   = document.getElementById('steps');
+      const finalStatus= document.getElementById('finalStatus');
+      const downloads  = document.getElementById('downloads');
+      const figureInfo = document.getElementById('figureInfo');
+      const debugBox   = document.getElementById('debugBox');
       let selectedFile = null;
 
       dropzone.onclick = () => input.click();
-      dropzone.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        dropzone.classList.add("hover");
-      });
-      dropzone.addEventListener("dragleave", () =>
-        dropzone.classList.remove("hover"),
-      );
-      dropzone.addEventListener("drop", (e) => {
-        e.preventDefault();
-        dropzone.classList.remove("hover");
-        setFile(e.dataTransfer.files[0]);
-      });
-      input.addEventListener("change", () => setFile(input.files[0]));
+      dropzone.addEventListener('dragover',  e => { e.preventDefault(); dropzone.classList.add('hover'); });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('hover'));
+      dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('hover'); setFile(e.dataTransfer.files[0]); });
+      input.addEventListener('change', () => setFile(input.files[0]));
 
       function setFile(file) {
-        if (!file || !file.name.toLowerCase().endsWith(".pdf"))
-          return alert("الرجاء اختيار ملف PDF فقط");
+        if (!file || !file.name.toLowerCase().endsWith('.pdf')) return alert('الرجاء اختيار ملف PDF فقط');
         selectedFile = file;
-        fileName.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-        fileInfo.style.display = "block";
+        fileName.textContent = `${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+        fileInfo.style.display = 'block';
         btn.disabled = false;
-        finalStatus.style.display = "none";
-        stepsDiv.style.display = "none";
-        debugBox.style.display = "none";
+        finalStatus.style.display = 'none';
+        downloads.style.display = 'none';
+        figureInfo.style.display = 'none';
+        stepsDiv.style.display = 'none';
+        debugBox.textContent = '';
       }
 
-      function setStep(id, state, detail = "") {
+      function setStep(id, state, detail='') {
         const el = document.getElementById(id);
-        const iconEl = el.querySelector(".step-icon");
-        const detailEl = el.querySelector(".step-detail");
+        const iconEl = el.querySelector('.step-icon');
+        const detailEl = el.querySelector(`#d${id.replace('step','')}`);
         el.className = `step ${state}`;
-        detailEl.textContent = detail;
-        if (state === "active")
-          iconEl.innerHTML = '<span class="spinner"></span>';
-        if (state === "done") iconEl.textContent = "✓";
-        if (state === "failed") iconEl.textContent = "✗";
-        if (state === "waiting") iconEl.textContent = el.id.replace("step", "");
+        if (detail) detailEl.textContent = detail;
+        if (state === 'active')  iconEl.innerHTML = '<span class="spinner"></span>';
+        if (state === 'done')    iconEl.textContent = '✓';
+        if (state === 'failed')  iconEl.textContent = '✗';
+        if (state === 'skipped') iconEl.textContent = '–';
+        if (state === 'waiting') iconEl.textContent = id.replace('step','');
       }
 
       function showFinal(msg, type) {
         finalStatus.innerHTML = msg;
         finalStatus.className = type;
-        finalStatus.style.display = "block";
+        finalStatus.style.display = 'block';
       }
 
       function log(msg) {
-        debugBox.style.display = "block";
-        debugBox.textContent += msg + "\n";
+        debugBox.style.display = 'block';
+        debugBox.textContent += msg + '\n';
         debugBox.scrollTop = debugBox.scrollHeight;
       }
 
-      btn.addEventListener("click", async () => {
+      btn.addEventListener('click', async () => {
         if (!selectedFile) return;
-
         btn.disabled = true;
-        finalStatus.style.display = "none";
-        debugBox.textContent = "";
-        stepsDiv.style.display = "block";
+        finalStatus.style.display = 'none';
+        downloads.style.display = 'none';
+        figureInfo.style.display = 'none';
+        debugBox.textContent = '';
+        stepsDiv.style.display = 'block';
 
-        // Reset all steps
-        ["step1", "step2", "step3", "step4"].forEach((s) =>
-          setStep(s, "waiting"),
-        );
+        ['step1','step2','step3','step4','step5','step6','step7'].forEach(s => setStep(s,'waiting'));
 
-        log(
-          `[${new Date().toLocaleTimeString()}] Starting: ${selectedFile.name}`,
-        );
-
-        // Step 1
-        setStep("step1", "active", "جاري الرفع...");
-        log("[1/4] Uploading PDF to server...");
+        setStep('step1', 'active', 'جاري الرفع...');
+        log(`[${new Date().toLocaleTimeString()}] Uploading: ${selectedFile.name}`);
 
         const formData = new FormData();
-        formData.append("file", selectedFile);
+        formData.append('file', selectedFile);
 
-        let response;
+        let response, data;
+        const t0 = Date.now();
         try {
-          const startTime = Date.now();
-          response = await fetch("/process", {
-            method: "POST",
-            body: formData,
-          });
-          const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-
-          setStep("step1", "done", `تم الإرسال`);
-          setStep("step2", "done", `استخرج Claude المحتوى`);
-          setStep("step3", "active", "جاري التحويل...");
-          log(
-            `[1-3] Server responded in ${elapsed}s — status: ${response.status}`,
-          );
-        } catch (e) {
-          setStep("step1", "failed", e.message);
-          log(`[ERROR] Network error: ${e.message}`);
-          showFinal(
-            "❌ تعذر الاتصال بالخادم. تأكد أن السيرفر يعمل على المنفذ 8000.",
-            "error",
-          );
+          response = await fetch('/process', { method: 'POST', body: formData });
+          data = await response.json();
+          const elapsed = ((Date.now()-t0)/1000).toFixed(1);
+          log(`Server responded in ${elapsed}s — status: ${response.status}`);
+        } catch(e) {
+          setStep('step1', 'failed', e.message);
+          showFinal('تعذر الاتصال بالخادم.', 'error');
           btn.disabled = false;
           return;
         }
 
-        const contentType = response.headers.get("content-type") || "";
-        log(`[INFO] Response content-type: ${contentType}`);
-        log(`[INFO] Response status: ${response.status}`);
-
-        if (response.ok && contentType.includes("application/pdf")) {
-          const blob = await response.blob();
-          log(`[INFO] PDF blob size: ${(blob.size / 1024).toFixed(1)} KB`);
-
-          if (blob.size < 1000) {
-            setStep("step3", "failed", "PDF فارغ أو تالف");
-            log(
-              `[ERROR] PDF too small (${blob.size} bytes) — likely a compile error`,
-            );
-            showFinal("❌ الملف الناتج تالف. راجع سجل التشخيص أدناه.", "error");
-            btn.disabled = false;
-            return;
-          }
-
-          setStep("step3", "done", "تم التحويل بنجاح");
-          setStep("step4", "active", "جاري التحميل...");
-
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = selectedFile.name.replace(/\.pdf$/i, "_clean.pdf");
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-
-          setStep("step4", "done", "تم التحميل");
-          log(`[✅] Done! File downloaded.`);
-          showFinal("✅ تم بنجاح! جاري تحميل الملف النظيف.", "success");
-        } else {
-          setStep("step3", "failed");
-          let errMsg = "خطأ غير معروف";
-          let details = "";
-          let texFile = "";
-
-          try {
-            const err = await response.json();
-            errMsg = err.error || errMsg;
-            details = err.details || "";
-            texFile = err.tex_file || "";
-            log(`[ERROR] Step: ${err.step}`);
-            log(`[ERROR] Message: ${err.error}`);
-            if (details) log(`[ERROR] Details:\n${details}`);
-            if (texFile) log(`[INFO] .tex file saved at: ${texFile}`);
-          } catch (e) {
-            log(`[ERROR] Could not parse error response`);
-          }
-
-          showFinal(
-            `❌ فشل التحويل: ${errMsg}` +
-              (texFile
-                ? `<br><small style="direction:ltr;display:block;margin-top:6px">📁 ${texFile}</small>`
-                : ""),
-            "error",
-          );
+        if (!response.ok) {
+          setStep('step1', 'failed');
+          log(`ERROR: ${data.error}`);
+          showFinal(`فشل المعالجة: ${data.error}`, 'error');
+          btn.disabled = false;
+          return;
         }
 
+        const { job_id, subject, year, duration, drive_url,
+                figures_extracted, figures_total, has_solution } = data;
+
+        // Mark steps based on what actually happened
+        setStep('step1', 'done', `${subject} | ${year}`);
+        setStep('step2', 'done', `${subject} · ${duration}`);
+
+        if (figures_total === 0) {
+          setStep('step3', 'skipped', 'لا توجد صور');
+        } else {
+          setStep('step3', 'done', `${figures_extracted} / ${figures_total} صورة`);
+        }
+
+        if (has_solution) {
+          setStep('step4', 'done', 'تم توليد ملف التصحيح');
+        } else {
+          setStep('step4', 'skipped', 'لا يوجد تصحيح');
+        }
+
+        if (drive_url) {
+          setStep('step5', 'done', 'تم الرفع');
+          setStep('step6', 'done', 'تم توليد رمز QR');
+        } else {
+          setStep('step5', 'skipped', 'Drive غير مُفعَّل');
+          setStep('step6', 'skipped', 'Drive غير مُفعَّل');
+        }
+
+        setStep('step7', 'done', 'ورقة الامتحان جاهزة');
+
+        // Show download buttons
+        const dlSubject = document.getElementById('dlSubject');
+        dlSubject.href = `/outputs/${job_id}/subject.pdf`;
+
+        const dlSolution = document.getElementById('dlSolution');
+        if (has_solution) {
+          dlSolution.href = `/outputs/${job_id}/solution.pdf`;
+          dlSolution.style.display = 'block';
+        }
+
+        const dlDrive = document.getElementById('dlDrive');
+        if (drive_url) {
+          dlDrive.href = drive_url;
+          dlDrive.style.display = 'block';
+        }
+
+        downloads.style.display = 'flex';
+
+        if (figures_total > 0) {
+          figureInfo.textContent = `تم استخراج ${figures_extracted} / ${figures_total} صورة تلقائياً`;
+          figureInfo.style.display = 'block';
+        }
+
+        showFinal('تمت المعالجة بنجاح', 'success');
+        log(`job_id: ${job_id}`);
+        log(`figures: ${figures_extracted}/${figures_total}`);
+        if (drive_url) log(`drive: ${drive_url}`);
         btn.disabled = false;
       });
     </script>
