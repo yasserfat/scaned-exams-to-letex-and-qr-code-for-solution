@@ -275,3 +275,83 @@ def generate_qr_code(url: str, output_path: str) -> str:
     img = qr.make_image(fill_color="black", back_color="white")
     img.get_image().save(output_path)
     return output_path
+
+
+# ── Orchestrator ──────────────────────────────────────────────────────────────
+
+def process_exam_pdf(pdf_bytes: bytes, work_dir: str,
+                     original_filename: str = "exam",
+                     compress: bool = True) -> dict:
+    os.makedirs(work_dir, exist_ok=True)
+
+    # 1. Compress + encode
+    data = compress_pdf_bytes(pdf_bytes) if compress else pdf_bytes
+    pdf_b64 = base64.b64encode(data).decode()
+
+    # 2. Single Claude call (Fix 3)
+    extracted = extract_all_from_pdf(pdf_b64)
+    subject  = extracted.get("subject", "")
+    year     = extracted.get("year", "----")
+    duration = extracted.get("duration", "----")
+    exam     = extracted.get("exam", "")
+    solution = extracted.get("solution", "")
+    if solution.strip() == "NO_SOLUTION":
+        solution = ""
+
+    # 3. Figure extraction (Fix 4)
+    figures_total = 0
+    figures_extracted = 0
+    if exam or solution:
+        specs = parse_figure_placeholders(exam + "\n" + solution)
+        figures_total = len(specs)
+        if specs:
+            # Save PDF to disk for fitz.open()
+            input_pdf_path = os.path.join(work_dir, "input.pdf")
+            with open(input_pdf_path, "wb") as f:
+                f.write(data)
+            figure_map = extract_figures_from_pdf(input_pdf_path, specs, work_dir)
+            figures_extracted = len(figure_map)
+            exam     = replace_figure_placeholders(exam,     figure_map)
+            solution = replace_figure_placeholders(solution, figure_map)
+
+    # 4. Compile solution.pdf (Fix 1)
+    drive_url = None
+    qr_png    = None
+    if solution.strip():
+        sol_latex = build_solution_latex(subject, year, duration, solution)
+        ok, err = compile_latex(sol_latex, work_dir, out_stem="solution")
+        if not ok:
+            print(f"  WARNING: solution.pdf compilation failed: {err}")
+
+        # 5. Upload to Drive (Fix 2)
+        sol_pdf = os.path.join(work_dir, "solution.pdf")
+        if os.path.exists(sol_pdf):
+            try:
+                stem = os.path.splitext(original_filename)[0]
+                drive_url = upload_to_drive(sol_pdf, f"{stem}_solution.pdf")
+                qr_png    = generate_qr_code(drive_url, os.path.join(work_dir, "qr_code.png"))
+            except Exception as e:
+                print(f"  WARNING: Drive upload failed: {e}")
+
+    # 6. Compile subject.pdf with QR (Fix 1 + Fix 2)
+    qr_rel = "qr_code.png" if (qr_png and os.path.exists(qr_png)) else None
+    subj_latex = build_subject_latex(subject, year, duration, exam, qr_rel)
+    ok, err = compile_latex(subj_latex, work_dir, out_stem="subject")
+    if not ok and qr_rel:
+        # Retry without QR if QR causes compile failure
+        subj_latex = build_subject_latex(subject, year, duration, exam, None)
+        ok, err = compile_latex(subj_latex, work_dir, out_stem="subject")
+    if not ok:
+        raise RuntimeError(f"subject.pdf compilation failed: {err}")
+
+    return {
+        "subject":           subject,
+        "year":              year,
+        "duration":          duration,
+        "subject_pdf":       os.path.join(work_dir, "subject.pdf"),
+        "solution_pdf":      os.path.join(work_dir, "solution.pdf") if solution.strip() else None,
+        "drive_url":         drive_url,
+        "qr_png":            qr_png,
+        "figures_extracted": figures_extracted,
+        "figures_total":     figures_total,
+    }
