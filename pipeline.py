@@ -260,12 +260,7 @@ def replace_figure_placeholders(latex: str, figure_map: dict[str, str]) -> str:
         name = m.group(1)
         if name in figure_map:
             fname = os.path.basename(figure_map[name])
-            return (
-                r"\begin{wrapfigure}{r}{0.4\textwidth}"
-                r"\centering"
-                rf"\includegraphics[width=0.38\textwidth]{{{fname}}}"
-                r"\end{wrapfigure}"
-            )
+            return rf"\begin{{center}}\includegraphics[width=0.5\textwidth]{{{fname}}}\end{{center}}"
         return m.group(0)  # keep placeholder
     return re.sub(pattern, replacer, latex, flags=re.DOTALL)
 
