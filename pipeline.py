@@ -1,5 +1,7 @@
 import re, os, json, base64, subprocess, shutil, uuid
-import anthropic, fitz, cv2, numpy as np, qrcode
+import anthropic
+from anthropic.types import TextBlock
+import fitz, cv2, numpy as np, qrcode
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
@@ -86,6 +88,6 @@ def extract_all_from_pdf(pdf_b64: str) -> dict:
         ]}]
     )
     block = msg.content[0]
-    if not hasattr(block, "text"):
+    if not isinstance(block, TextBlock):
         raise ValueError(f"Unexpected response block type: {type(block)}")
     return json.loads(clean_json_response(block.text))
