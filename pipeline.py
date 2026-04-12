@@ -148,3 +148,87 @@ def compile_latex(latex_code: str, work_dir: str,
             return False, "\n".join(error_lines)
         return False, "PDF not created and no log found"
     return True, ""
+
+
+# ── Figure extraction ─────────────────────────────────────────────────────────
+
+def parse_figure_placeholders(latex: str) -> list[dict]:
+    """Returns [{"name": str, "page": int}, ...]  page defaults to 1."""
+    pattern = r'\[FIGURE:([\w_-]+)(?::page(\d+))?\]'
+    results = []
+    for m in re.finditer(pattern, latex):
+        results.append({"name": m.group(1), "page": int(m.group(2) or 1)})
+    return results
+
+
+def extract_figures_from_pdf(pdf_path: str, figure_specs: list[dict],
+                              work_dir: str, dpi: int = 200) -> dict[str, str]:
+    """
+    Returns {name: png_path} for successfully extracted figures.
+    Specs without a detected contour are omitted (placeholder stays).
+    """
+    doc = fitz.open(pdf_path)
+    figure_map = {}
+
+    for spec in figure_specs:
+        name = spec["name"]
+        page_idx = spec["page"] - 1
+        if page_idx >= len(doc):
+            continue
+
+        # Render page at dpi
+        page = doc[page_idx]
+        mat = fitz.Matrix(dpi / 72, dpi / 72)
+        pix = page.get_pixmap(matrix=mat, alpha=False)
+        img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width, 3)
+
+        # Threshold + morphological close to join figure marks into blobs
+        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (20, 20))
+        closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+
+        # Find contours
+        contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # Filter: min 100pt × 100pt, max 95% page width, max 60% page height, aspect 0.2–5.0
+        MIN_PX = int(100 * dpi / 72)
+        candidates = []
+        for cnt in contours:
+            x, y, w, h = cv2.boundingRect(cnt)
+            if (MIN_PX <= w <= int(pix.width * 0.95) and
+                MIN_PX <= h <= int(pix.height * 0.6) and
+                0.2 <= w / h <= 5.0):
+                candidates.append((w * h, x, y, w, h))
+
+        if not candidates:
+            continue  # no figure found — keep placeholder
+
+        # Largest candidate + 5% padding
+        _, x, y, w, h = sorted(candidates, reverse=True)[0]
+        pad_x, pad_y = int(w * 0.05), int(h * 0.05)
+        x1 = max(0, x - pad_x); y1 = max(0, y - pad_y)
+        x2 = min(pix.width, x + w + pad_x); y2 = min(pix.height, y + h + pad_y)
+
+        cropped = img[y1:y2, x1:x2]
+        out_path = os.path.join(work_dir, f"figure_{name}.png")
+        cv2.imwrite(out_path, cv2.cvtColor(cropped, cv2.COLOR_RGB2BGR))
+        figure_map[name] = out_path
+
+    doc.close()
+    return figure_map
+
+
+def replace_figure_placeholders(latex: str, figure_map: dict[str, str]) -> str:
+    """
+    Replace [FIGURE:name:pageN] fbox blocks with \\includegraphics for resolved figures.
+    Unresolved placeholders left as-is.
+    """
+    pattern = r'\\begin\{center\}\s*\\fbox\{[^}]*\[FIGURE:([\w_-]+)(?::page\d+)?\][^}]*\}\s*\\end\{center\}'
+    def replacer(m: re.Match) -> str:
+        name = m.group(1)
+        if name in figure_map:
+            fname = os.path.basename(figure_map[name])
+            return rf"\begin{{center}}\includegraphics[width=0.8\textwidth]{{{fname}}}\end{{center}}"
+        return m.group(0)  # keep placeholder
+    return re.sub(pattern, replacer, latex, flags=re.DOTALL)
