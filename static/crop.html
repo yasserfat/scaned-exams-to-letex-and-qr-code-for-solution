@@ -180,8 +180,10 @@
       background: #0f172a;
       border-top: 1px solid #334155;
     }
-    #downloadPanel a {
+    #downloadPanel a,
+    #downloadPanel button {
       display: block;
+      width: 100%;
       padding: 10px;
       border-radius: 8px;
       text-align: center;
@@ -189,11 +191,15 @@
       font-weight: bold;
       text-decoration: none;
       margin-bottom: 6px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      box-sizing: border-box;
     }
     .dl-subject  { background: #1d4ed8; color: white; }
     .dl-solution { background: #059669; color: white; }
     .dl-drive    { background: #b45309; color: white; }
-    .dl-reset    { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; cursor: pointer; font-size: 14px; font-weight: bold; font-family: inherit; }
+    .dl-reset    { background: #334155; color: #cbd5e1; }
 
     /* Instruction overlay */
     #instruction {
