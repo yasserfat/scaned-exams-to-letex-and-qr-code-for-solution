@@ -9,7 +9,7 @@ Usage:
 Outputs the saved file path to stdout.
 """
 import argparse
-from pipeline import generate_qr_code
+from src.compiler import generate_qr_code
 
 
 def main() -> None:

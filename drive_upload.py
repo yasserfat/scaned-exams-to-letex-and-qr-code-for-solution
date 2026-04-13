@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from pipeline import upload_to_drive
+from src.drive import upload_to_drive
 
 
 def main() -> None:

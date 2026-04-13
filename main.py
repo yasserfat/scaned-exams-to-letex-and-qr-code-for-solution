@@ -7,12 +7,8 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from pipeline import (
-    process_exam_pdf,
-    extract_figures_from_pdf,
-    replace_figure_placeholders,
-    compile_pdfs,
-)
+from src.orchestrator import process_exam_pdf, compile_pdfs
+from src.figures import extract_figures_from_pdf, replace_figure_placeholders
 
 app = FastAPI()
 

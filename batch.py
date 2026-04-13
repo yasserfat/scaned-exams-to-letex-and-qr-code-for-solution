@@ -9,7 +9,7 @@ Figures are cropped automatically using Claude's bounding box estimates.
 import os
 import json
 
-from pipeline import process_exam_pdf
+from src.orchestrator import process_exam_pdf
 
 INPUT_FOLDER  = "exams_input"
 OUTPUT_FOLDER = "exams_output"
