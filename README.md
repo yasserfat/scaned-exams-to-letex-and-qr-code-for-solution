@@ -50,11 +50,13 @@ sudo apt install texlive-xetex texlive-lang-arabic fonts-amiri
 
 **Windows:**
 
-1. Install [MiKTeX](https://miktex.org/download) (recommended) or [TeX Live](https://tug.org/texlive/).
-2. During first compile, MiKTeX auto-installs missing packages — allow it when prompted.
-3. Install the Amiri font manually if it is not pulled automatically:
-   - Download `amiri` from [CTAN](https://ctan.org/pkg/amiri) or via MiKTeX Console → Packages → search "amiri" → Install.
-4. Make sure `xelatex.exe` is on your `PATH` (MiKTeX installer does this automatically).
+Run the setup script as Administrator — it uses `winget` (built into Windows 10 21H2+ and all Windows 11 installs) to install Python, MiKTeX, and Amiri, then installs all Python packages:
+
+```bat
+setup_windows.bat
+```
+
+Right-click → **Run as administrator**. Takes 5-10 minutes on first run (MiKTeX is ~500 MB). On first PDF compile, MiKTeX may prompt to install a missing package — allow it.
 
 **macOS:**
 ```bash
@@ -101,13 +103,7 @@ GOOGLE_DRIVE_PUBLIC=true
 
 ### 5. Run the web UI
 
-**Linux/macOS:**
 ```bash
-uvicorn main:app --reload
-```
-
-**Windows (Command Prompt or PowerShell):**
-```powershell
 uvicorn main:app --reload
 ```
 
@@ -117,13 +113,7 @@ Open `http://localhost:8000`, drag a PDF, click Process.
 
 Put PDFs in `exams_input/`, then run:
 
-**Linux/macOS:**
 ```bash
-python batch.py
-```
-
-**Windows:**
-```powershell
 python batch.py
 ```
 
