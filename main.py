@@ -143,7 +143,6 @@ async def apply_crops(job_id: str, payload: CropsPayload):
             work_dir,
             state["subject"], state["year"], state["duration"],
             exam, solution,
-            original_filename=state.get("original_filename", "exam.pdf"),
         )
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
@@ -185,7 +184,6 @@ async def skip_crops(job_id: str):
             work_dir,
             state["subject"], state["year"], state["duration"],
             exam, solution,
-            original_filename=state.get("original_filename", "exam.pdf"),
         )
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})

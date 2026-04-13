@@ -7,8 +7,10 @@ import qrcode.constants
 
 # ── Templates ─────────────────────────────────────────────────────────────────
 
-SUBJECT_TEMPLATE  = open("template_subject.tex",  encoding="utf-8").read()
-SOLUTION_TEMPLATE = open("template_solution.tex", encoding="utf-8").read()
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_ROOT = os.path.dirname(_HERE)
+SUBJECT_TEMPLATE  = open(os.path.join(_ROOT, "template_subject.tex"),  encoding="utf-8").read()
+SOLUTION_TEMPLATE = open(os.path.join(_ROOT, "template_solution.tex"), encoding="utf-8").read()
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -58,8 +60,9 @@ def compile_latex(latex_code: str, work_dir: str,
                   out_stem: str = "exam") -> tuple[bool, str]:
     """Write {out_stem}.tex, run xelatex twice, return (success, error_log)."""
     os.makedirs(work_dir, exist_ok=True)
-    if os.path.exists("logo.png"):
-        shutil.copy("logo.png", os.path.join(work_dir, "logo.png"))
+    logo_src = os.path.join(_ROOT, "logo.png")
+    if os.path.exists(logo_src):
+        shutil.copy(logo_src, os.path.join(work_dir, "logo.png"))
     tex_path = os.path.join(work_dir, f"{out_stem}.tex")
     with open(tex_path, "w", encoding="utf-8") as f:
         f.write(latex_code)

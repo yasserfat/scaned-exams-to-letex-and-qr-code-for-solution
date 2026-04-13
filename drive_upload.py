@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Upload a PDF to Google Drive via service account.
+Upload a PDF to Google Drive via OAuth2 (user account).
 
 Usage:
     python drive_upload.py solution.pdf
     python drive_upload.py solution.pdf --name "exam_2025_solution.pdf"
     python drive_upload.py solution.pdf --folder <FOLDER_ID>
 
-Env vars required:
-    GOOGLE_DRIVE_CREDENTIALS=/path/to/service-account-key.json
+Requires oauth_client.json (Desktop app credentials) in the project root.
+On first run a browser window opens for Google login; token.json is saved for future runs.
 
 Optional env vars:
     GOOGLE_DRIVE_FOLDER_ID=<folder_id>   # target folder (root if absent)

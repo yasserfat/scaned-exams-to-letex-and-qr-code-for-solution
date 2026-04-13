@@ -1,6 +1,5 @@
 import os
 import base64
-import json
 import fitz
 from src.claude import extract_all_from_pdf
 from src.pdf_utils import compress_pdf_bytes, render_page_images, make_exam_stem
@@ -13,8 +12,7 @@ from src.compiler import (
 
 
 def compile_pdfs(work_dir: str, subject: str, year: str, duration: str,
-                 exam: str, solution: str,
-                 original_filename: str = "exam") -> dict:
+                 exam: str, solution: str) -> dict:
     """
     Compile subject.pdf (+ solution.pdf if present) from already-processed LaTeX.
     Drive upload + QR are attempted if credentials are configured.

@@ -55,15 +55,6 @@ def clean_json_response(raw: str) -> str:
     return raw.strip()
 
 
-def clean_latex(raw: str) -> str:
-    """Strip markdown fences AND \\begin{document}/\\end{document} wrappers."""
-    raw = raw.strip()
-    raw = re.sub(r'^```[a-zA-Z]*\n?', '', raw)
-    raw = re.sub(r'\n?```$', '', raw)
-    raw = re.sub(r'\\begin\{document\}', '', raw)
-    raw = re.sub(r'\\end\{document\}', '', raw)
-    return raw.strip()
-
 
 def extract_all_from_pdf(pdf_b64: str) -> dict:
     """One Claude call. Returns {subject, year, duration, exam, solution}."""
