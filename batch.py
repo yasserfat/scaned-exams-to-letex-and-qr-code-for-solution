@@ -52,6 +52,13 @@ for i, filename in enumerate(files, 1):
             manual_crops=False,   # auto-crop using Claude's bounding boxes
         )
 
+        # Rename output folder to smart stem (subject_year_date)
+        smart_stem = result.get("stem", stem)
+        smart_out_dir = os.path.join(OUTPUT_FOLDER, smart_stem)
+        if smart_out_dir != out_dir and not os.path.exists(smart_out_dir):
+            os.rename(out_dir, smart_out_dir)
+            out_dir = smart_out_dir
+
         print(f"  Subject:  {result['subject']} | {result['year']}")
         print(f"  Figures:  {result['figures_extracted']}/{result['figures_total']}")
         print(f"  Cost:     ${result.get('cost_usd', 0):.4f}")

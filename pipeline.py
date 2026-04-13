@@ -425,8 +425,14 @@ def process_exam_pdf(pdf_bytes: bytes, work_dir: str,
                      manual_crops: bool = False) -> dict:
     os.makedirs(work_dir, exist_ok=True)
 
-    # 1. Compress + encode
-    data = compress_pdf_bytes(pdf_bytes) if compress else pdf_bytes
+    # 1. Compress + encode (skip compression for files already under 2 MB)
+    _SIZE_THRESHOLD = 2 * 1024 * 1024
+    if compress and len(pdf_bytes) > _SIZE_THRESHOLD:
+        data = compress_pdf_bytes(pdf_bytes)
+    else:
+        if len(pdf_bytes) <= _SIZE_THRESHOLD:
+            print(f"  Skipping compression ({len(pdf_bytes)/1024:.0f} KB < 2 MB)")
+        data = pdf_bytes
     pdf_b64 = base64.b64encode(data).decode()
 
     # 2. Single Claude call (Fix 3)
