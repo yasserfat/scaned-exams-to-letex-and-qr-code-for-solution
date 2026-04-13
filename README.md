@@ -14,7 +14,7 @@ Takes a scanned Arabic exam PDF, extracts content with Claude, compiles clean La
 
 ## Setup
 
-### 1. Install dependencies
+### 1. Install Python dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -34,17 +34,38 @@ pip install -r requirements.txt
 | `google-api-python-client` | Google Drive API |
 | `google-auth` + `google-auth-httplib2` + `google-auth-oauthlib` | OAuth2 authentication for Drive |
 
-Also needs XeLaTeX with the Amiri font:
+### 2. Install XeLaTeX + Arabic fonts
 
+XeLaTeX and the Amiri font are required to compile the PDFs. Install them for your OS:
+
+**Linux — Arch:**
 ```bash
-# Arch
 sudo pacman -S texlive-xetex texlive-langarabic
+```
 
-# Ubuntu/Debian
+**Linux — Ubuntu/Debian:**
+```bash
 sudo apt install texlive-xetex texlive-lang-arabic fonts-amiri
 ```
 
-**LaTeX packages** (included in the above distro installs):
+**Windows:**
+
+1. Install [MiKTeX](https://miktex.org/download) (recommended) or [TeX Live](https://tug.org/texlive/).
+2. During first compile, MiKTeX auto-installs missing packages — allow it when prompted.
+3. Install the Amiri font manually if it is not pulled automatically:
+   - Download `amiri` from [CTAN](https://ctan.org/pkg/amiri) or via MiKTeX Console → Packages → search "amiri" → Install.
+4. Make sure `xelatex.exe` is on your `PATH` (MiKTeX installer does this automatically).
+
+**macOS:**
+```bash
+# Install MacTeX (includes XeLaTeX and most packages)
+brew install --cask mactex
+
+# Amiri font is included; if missing:
+sudo tlmgr install amiri
+```
+
+**LaTeX packages** (bundled with the distro installs above):
 
 | Package | Purpose |
 |---------|---------|
@@ -60,17 +81,17 @@ sudo apt install texlive-xetex texlive-lang-arabic fonts-amiri
 | `xcolor` | Color support |
 | `enumitem` | List formatting |
 
-### 2. Configure environment
+### 3. Configure environment
 
-Copy `.env.example` (or create `.env`):
+Create a `.env` file in the project root:
 
-```bash
+```
 ANTHROPIC_API_KEY=sk-ant-...
 GOOGLE_DRIVE_FOLDER_ID=1ABC...XYZ
 GOOGLE_DRIVE_PUBLIC=true
 ```
 
-### 3. Google Drive OAuth setup
+### 4. Google Drive OAuth setup
 
 - Go to [Google Cloud Console](https://console.cloud.google.com) → create a project
 - Enable **Google Drive API**
@@ -78,23 +99,35 @@ GOOGLE_DRIVE_PUBLIC=true
 - Save it as `oauth_client.json` in the project folder
 - On first upload, a browser tab opens — click Allow. Token saved to `token.json` forever after
 
-### 4. Run the web UI
+### 5. Run the web UI
 
+**Linux/macOS:**
 ```bash
+uvicorn main:app --reload
+```
+
+**Windows (Command Prompt or PowerShell):**
+```powershell
 uvicorn main:app --reload
 ```
 
 Open `http://localhost:8000`, drag a PDF, click Process.
 
-### 5. Batch mode
+### 6. Batch mode
 
-Put PDFs in `exams_input/`, run:
+Put PDFs in `exams_input/`, then run:
 
+**Linux/macOS:**
 ```bash
 python batch.py
 ```
 
-Results land in `exams_output/<filename>/subject.pdf` (and `solution.pdf` if present).
+**Windows:**
+```powershell
+python batch.py
+```
+
+Results land in `exams_output/<stem>/subject.pdf` (and `solution.pdf` if present). The folder name is the smart stem — subject name + year + date, e.g. `رياضيات_2025_2026-04-13`.
 
 ## Project structure
 
