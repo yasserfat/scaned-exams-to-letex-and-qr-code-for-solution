@@ -47,10 +47,10 @@
         margin-top: 2px;
       }
 
-      /* ── Main card ── */
+      /* ── Main ── */
       main {
         width: 100%;
-        max-width: 700px;
+        max-width: 960px;
         padding: 32px 20px 48px;
       }
 
@@ -96,7 +96,6 @@
         margin-bottom: 14px;
         font-size: 13px;
         color: #475569;
-        display: none;
         align-items: center;
         gap: 8px;
       }
@@ -127,7 +126,7 @@
         margin: 24px 0;
       }
 
-      /* ── Steps ── */
+      /* ── Steps (single-file) ── */
       #steps { display: none; }
       .step {
         display: flex;
@@ -159,7 +158,6 @@
         text-align: left;
       }
 
-      /* States */
       .step.waiting  { border-right-color: #e2e8f0; color: #94a3b8; }
       .step.active   { border-right-color: #f59e0b; color: #92400e; }
       .step.done     { border-right-color: #10b981; color: #065f46; }
@@ -197,7 +195,7 @@
       .success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
       .error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
 
-      /* ── Downloads ── */
+      /* ── Downloads (single-file) ── */
       #downloads {
         display: none;
         flex-direction: column;
@@ -254,7 +252,131 @@
       #debugBox .log-line { color: #475569; }
       #debugBox .log-line.highlight { color: #94a3b8; }
 
-      /* resetBtn styled via .dl-reset above */
+      /* ── Batch grid ── */
+      #batchGrid {
+        display: none;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+        margin-top: 24px;
+      }
+      #batchGrid.visible { display: grid; }
+
+      .job-card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .jc-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .jc-filename {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1e293b;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+        min-width: 0;
+      }
+      .jc-badge {
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-weight: 600;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .jc-badge.waiting { background: #f1f5f9; color: #94a3b8; }
+      .jc-badge.active  { background: #fef3c7; color: #92400e; }
+      .jc-badge.done    { background: #d1fae5; color: #065f46; }
+      .jc-badge.skipped { background: #fef9c3; color: #854d0e; }
+      .jc-badge.failed  { background: #fee2e2; color: #991b1b; }
+
+      /* Mini step list inside card */
+      .jc-steps { display: flex; flex-direction: column; gap: 3px; }
+      .jc-step-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: #94a3b8;
+      }
+      .jc-step-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        flex-shrink: 0;
+      }
+      .jc-step-row.active .jc-step-dot { background: #f59e0b; }
+      .jc-step-row.done   .jc-step-dot { background: #10b981; }
+      .jc-step-row.failed .jc-step-dot { background: #ef4444; }
+      .jc-step-row.active { color: #92400e; }
+      .jc-step-row.done   { color: #065f46; }
+      .jc-step-row.failed { color: #991b1b; }
+
+      .jc-step-spinner {
+        width: 8px; height: 8px;
+        border: 1.5px solid #f59e0b;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        flex-shrink: 0;
+      }
+
+      /* Download buttons inside card */
+      .jc-downloads { display: flex; flex-wrap: wrap; gap: 6px; }
+      .jc-dl-btn {
+        font-size: 12px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .jc-dl-btn:hover { opacity: 0.85; }
+      .jc-subject  { background: #1e293b; color: white; }
+      .jc-solution { background: #0f766e; color: white; }
+      .jc-drive    { background: #b45309; color: white; }
+
+      .jc-skip-notice {
+        font-size: 12px;
+        color: #92400e;
+        background: #fef9c3;
+        padding: 8px;
+        border-radius: 6px;
+      }
+      .jc-error {
+        font-size: 12px;
+        color: #991b1b;
+        background: #fee2e2;
+        padding: 8px;
+        border-radius: 6px;
+      }
+
+      /* Batch summary bar */
+      #batchSummary {
+        display: none;
+        margin-top: 20px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: #f0fdf4;
+        border: 1px solid #a7f3d0;
+        font-size: 14px;
+        color: #065f46;
+        text-align: center;
+      }
     </style>
   </head>
   <body>
@@ -273,66 +395,75 @@
 
           <div id="dropzone">
             <div class="dz-icon">📄</div>
-            <div class="dz-primary">اسحب ملف PDF هنا</div>
+            <div class="dz-primary">اسحب ملف PDF هنا أو عدة ملفات دفعة واحدة</div>
             <div class="dz-secondary">أو انقر للاختيار من الجهاز</div>
-            <input type="file" id="pdfInput" accept=".pdf" />
+            <input type="file" id="pdfInput" accept=".pdf" multiple />
           </div>
 
-          <div id="fileInfo">
-            <span>📎</span>
-            <span class="fi-name" id="fileName"></span>
-            <span class="fi-size" id="fileSize"></span>
+          <!-- Single-file mode controls -->
+          <div id="singleFileUI">
+            <div id="fileInfo">
+              <span>📎</span>
+              <span class="fi-name" id="fileName"></span>
+              <span class="fi-size" id="fileSize"></span>
+            </div>
+
+            <button class="btn-primary" id="processBtn" disabled>معالجة الامتحان</button>
+
+            <div class="divider" id="stepsDivider" style="display:none"></div>
+
+            <div id="steps">
+              <div class="step waiting" id="step1">
+                <div class="step-text">رفع ومعالجة الملف<div class="step-detail" id="d1"></div></div>
+                <div class="step-icon">1</div>
+              </div>
+              <div class="step waiting" id="step2">
+                <div class="step-text">استخراج المحتوى (Claude)<div class="step-detail" id="d2"></div></div>
+                <div class="step-icon">2</div>
+              </div>
+              <div class="step waiting" id="step3">
+                <div class="step-text">استخراج الصور التلقائي<div class="step-detail" id="d3"></div></div>
+                <div class="step-icon">3</div>
+              </div>
+              <div class="step waiting" id="step4">
+                <div class="step-text">توليد ملف التصحيح<div class="step-detail" id="d4"></div></div>
+                <div class="step-icon">4</div>
+              </div>
+              <div class="step waiting" id="step5">
+                <div class="step-text">رفع التصحيح إلى Google Drive<div class="step-detail" id="d5"></div></div>
+                <div class="step-icon">5</div>
+              </div>
+              <div class="step waiting" id="step6">
+                <div class="step-text">توليد رمز QR<div class="step-detail" id="d6"></div></div>
+                <div class="step-icon">6</div>
+              </div>
+              <div class="step waiting" id="step7">
+                <div class="step-text">توليد ورقة الامتحان النهائية<div class="step-detail" id="d7"></div></div>
+                <div class="step-icon">7</div>
+              </div>
+            </div>
+
+            <div id="finalStatus"></div>
+
+            <div id="downloads">
+              <a id="dlSubject"  class="dl-btn dl-subject"  href="#" target="_blank">⬇ تحميل ورقة الامتحان</a>
+              <a id="dlSolution" class="dl-btn dl-solution" href="#" target="_blank" style="display:none">⬇ تحميل التصحيح النموذجي</a>
+              <a id="dlDrive"    class="dl-btn dl-drive"    href="#" target="_blank" style="display:none">↗ فتح التصحيح على Google Drive</a>
+              <button id="resetBtn" class="dl-btn dl-reset">↑ رفع امتحان جديد</button>
+            </div>
+
+            <div id="figureInfo"></div>
+            <div id="debugBox"></div>
           </div>
-
-          <button class="btn-primary" id="processBtn" disabled>معالجة الامتحان</button>
-
-          <div class="divider" id="stepsDivider" style="display:none"></div>
-
-          <div id="steps">
-            <div class="step waiting" id="step1">
-              <div class="step-text">رفع ومعالجة الملف<div class="step-detail" id="d1"></div></div>
-              <div class="step-icon">1</div>
-            </div>
-            <div class="step waiting" id="step2">
-              <div class="step-text">استخراج المحتوى (Claude)<div class="step-detail" id="d2"></div></div>
-              <div class="step-icon">2</div>
-            </div>
-            <div class="step waiting" id="step3">
-              <div class="step-text">استخراج الصور التلقائي<div class="step-detail" id="d3"></div></div>
-              <div class="step-icon">3</div>
-            </div>
-            <div class="step waiting" id="step4">
-              <div class="step-text">توليد ملف التصحيح<div class="step-detail" id="d4"></div></div>
-              <div class="step-icon">4</div>
-            </div>
-            <div class="step waiting" id="step5">
-              <div class="step-text">رفع التصحيح إلى Google Drive<div class="step-detail" id="d5"></div></div>
-              <div class="step-icon">5</div>
-            </div>
-            <div class="step waiting" id="step6">
-              <div class="step-text">توليد رمز QR<div class="step-detail" id="d6"></div></div>
-              <div class="step-icon">6</div>
-            </div>
-            <div class="step waiting" id="step7">
-              <div class="step-text">توليد ورقة الامتحان النهائية<div class="step-detail" id="d7"></div></div>
-              <div class="step-icon">7</div>
-            </div>
-          </div>
-
-          <div id="finalStatus"></div>
-
-          <div id="downloads">
-            <a id="dlSubject"  class="dl-btn dl-subject"  href="#" target="_blank">⬇ تحميل ورقة الامتحان</a>
-            <a id="dlSolution" class="dl-btn dl-solution" href="#" target="_blank" style="display:none">⬇ تحميل التصحيح النموذجي</a>
-            <a id="dlDrive"    class="dl-btn dl-drive"    href="#" target="_blank" style="display:none">↗ فتح التصحيح على Google Drive</a>
-            <button id="resetBtn" class="dl-btn dl-reset">↑ رفع امتحان جديد</button>
-          </div>
-
-          <div id="figureInfo"></div>
-          <div id="debugBox"></div>
+          <!-- end single-file -->
 
         </div>
       </div>
+
+      <!-- Batch mode: job cards grid -->
+      <div id="batchGrid"></div>
+      <div id="batchSummary"></div>
+
     </main>
 
     <script>
@@ -349,13 +480,32 @@
       const downloads   = document.getElementById('downloads');
       const figureInfo  = document.getElementById('figureInfo');
       const debugBox    = document.getElementById('debugBox');
+      const singleFileUI= document.getElementById('singleFileUI');
+      const batchGrid   = document.getElementById('batchGrid');
+      const batchSummary= document.getElementById('batchSummary');
       let selectedFile  = null;
 
       dropzone.onclick = () => input.click();
       dropzone.addEventListener('dragover',  e => { e.preventDefault(); dropzone.classList.add('hover'); });
       dropzone.addEventListener('dragleave', () => dropzone.classList.remove('hover'));
-      dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('hover'); setFile(e.dataTransfer.files[0]); });
-      input.addEventListener('change', () => setFile(input.files[0]));
+      dropzone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropzone.classList.remove('hover');
+        const files = Array.from(e.dataTransfer.files).filter(f => f.name.toLowerCase().endsWith('.pdf'));
+        if (!files.length) return alert('الرجاء إسقاط ملفات PDF فقط');
+        if (files.length === 1) setFile(files[0]);
+        else startBatch(files);
+      });
+      input.addEventListener('change', () => {
+        const files = Array.from(input.files);
+        if (!files.length) return;
+        if (files.length === 1) setFile(files[0]);
+        else startBatch(files);
+      });
+
+      /* ─────────────────────────────────────────────────
+         Single-file mode (unchanged logic)
+      ───────────────────────────────────────────────── */
 
       function setFile(file) {
         if (!file || !file.name.toLowerCase().endsWith('.pdf')) return alert('الرجاء اختيار ملف PDF فقط');
@@ -372,6 +522,10 @@
         resetBtn.style.display = 'none';
         debugBox.textContent = '';
         debugBox.style.display = 'none';
+        // Hide batch UI if switching back
+        batchGrid.classList.remove('visible');
+        batchSummary.style.display = 'none';
+        singleFileUI.style.display = 'block';
       }
 
       function setStep(id, state, detail='') {
@@ -524,6 +678,210 @@
         document.getElementById('dlSolution').style.display = 'none';
         document.getElementById('dlDrive').style.display = 'none';
       });
+
+      /* ─────────────────────────────────────────────────
+         Batch mode
+      ───────────────────────────────────────────────── */
+
+      const STEP_LABELS = [
+        '',                                  // 0 unused
+        'رفع الملف',                         // 1
+        'استخراج المحتوى (Claude)',           // 2
+        'فحص الصور',                         // 3
+        'تجميع التصحيح',                     // 4
+        'رفع إلى Drive',                     // 5
+        'توليد QR',                          // 6
+        'تجميع ورقة الامتحان',               // 7
+      ];
+
+      function startBatch(files) {
+        // Hide single-file UI
+        singleFileUI.style.display = 'none';
+        batchGrid.innerHTML = '';
+        batchGrid.classList.add('visible');
+        batchSummary.style.display = 'none';
+
+        const cards = files.map(f => createCard(f.name));
+        const promises = files.map((file, i) => processOneBatch(file, cards[i]));
+
+        Promise.allSettled(promises).then(() => showBatchSummary(cards));
+      }
+
+      function createCard(filename) {
+        const card = document.createElement('div');
+        card.className = 'job-card';
+
+        const header = document.createElement('div');
+        header.className = 'jc-header';
+        header.innerHTML = `
+          <span class="jc-filename" title="${filename}">${filename}</span>
+          <span class="jc-badge waiting">في الانتظار</span>
+        `;
+
+        const stepsEl = document.createElement('div');
+        stepsEl.className = 'jc-steps';
+        for (let i = 1; i <= 7; i++) {
+          const row = document.createElement('div');
+          row.className = 'jc-step-row';
+          row.dataset.step = i;
+          row.innerHTML = `<div class="jc-step-dot"></div><span>${STEP_LABELS[i]}</span>`;
+          stepsEl.appendChild(row);
+        }
+
+        const dlsEl = document.createElement('div');
+        dlsEl.className = 'jc-downloads';
+        dlsEl.style.display = 'none';
+
+        const skipEl = document.createElement('div');
+        skipEl.className = 'jc-skip-notice';
+        skipEl.style.display = 'none';
+
+        const errEl = document.createElement('div');
+        errEl.className = 'jc-error';
+        errEl.style.display = 'none';
+
+        card.appendChild(header);
+        card.appendChild(stepsEl);
+        card.appendChild(dlsEl);
+        card.appendChild(skipEl);
+        card.appendChild(errEl);
+        batchGrid.appendChild(card);
+        return card;
+      }
+
+      function cardBadge(card, state, label) {
+        const badge = card.querySelector('.jc-badge');
+        badge.className = `jc-badge ${state}`;
+        badge.textContent = label;
+      }
+
+      function cardStep(card, stepNum, state, label) {
+        const row = card.querySelector(`.jc-step-row[data-step="${stepNum}"]`);
+        if (!row) return;
+        row.className = `jc-step-row ${state}`;
+        const dot = row.querySelector('.jc-step-dot, .jc-step-spinner');
+        if (state === 'active') {
+          dot.outerHTML = '<div class="jc-step-spinner"></div>';
+        } else {
+          const newDot = row.querySelector('.jc-step-dot, .jc-step-spinner');
+          if (newDot) newDot.className = 'jc-step-dot';
+        }
+        if (label) row.querySelector('span').textContent = label;
+      }
+
+      function updateCardFromStatus(card, status) {
+        if (!status || !status.step) return;
+        const { step, state, label } = status;
+        // Mark steps before current as done, current as active/done
+        for (let i = 1; i <= 7; i++) {
+          if (i < step) cardStep(card, i, 'done', STEP_LABELS[i]);
+          else if (i === step) cardStep(card, i, state, label || STEP_LABELS[i]);
+        }
+        const badgeLabels = { active: 'جاري...', done: 'مكتمل', failed: 'فشل', skipped: 'يحتوي على صور' };
+        if (state !== 'waiting') cardBadge(card, state, badgeLabels[state] || state);
+      }
+
+      async function processOneBatch(file, card) {
+        const jobId = crypto.randomUUID();
+
+        cardBadge(card, 'active', 'جاري...');
+        cardStep(card, 1, 'active', 'رفع الملف...');
+
+        // Start polling for step progress
+        const poller = setInterval(async () => {
+          try {
+            const r = await fetch(`/outputs/${jobId}/status.json`);
+            if (r.ok) updateCardFromStatus(card, await r.json());
+          } catch (_) { /* ignore poll errors */ }
+        }, 2000);
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        let response, data;
+        try {
+          response = await fetch('/process', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Job-Id': jobId },
+          });
+          data = await response.json();
+        } catch (e) {
+          clearInterval(poller);
+          cardBadge(card, 'failed', 'خطأ');
+          card.querySelector('.jc-error').style.display = 'block';
+          card.querySelector('.jc-error').textContent = e.message;
+          return;
+        }
+        clearInterval(poller);
+
+        if (!response.ok) {
+          cardBadge(card, 'failed', 'فشل');
+          card.querySelector('.jc-error').style.display = 'block';
+          card.querySelector('.jc-error').textContent = data.error || 'خطأ غير معروف';
+          return;
+        }
+
+        if (data.needs_crop) {
+          // Mark steps 1-2 done, step 3 skipped
+          cardStep(card, 1, 'done', 'تم الرفع');
+          cardStep(card, 2, 'done', 'استخرج Claude المحتوى');
+          cardStep(card, 3, 'skipped', `${data.figure_specs.length} صور`);
+          cardBadge(card, 'skipped', 'يحتوي على صور');
+          const skipEl = card.querySelector('.jc-skip-notice');
+          skipEl.textContent = `يحتوي على ${data.figure_specs.length} صور — افتح الامتحان بالواجهة الفردية للمعالجة اليدوية`;
+          skipEl.style.display = 'block';
+          card.dataset.outcome = 'skipped';
+          return;
+        }
+
+        // Success — mark all steps done
+        for (let i = 1; i <= 7; i++) cardStep(card, i, 'done', STEP_LABELS[i]);
+        cardBadge(card, 'done', 'مكتمل');
+
+        // Download buttons
+        const dlsEl = card.querySelector('.jc-downloads');
+        dlsEl.innerHTML = '';
+        const subjectBtn = document.createElement('a');
+        subjectBtn.href = `/outputs/${jobId}/subject.pdf`;
+        subjectBtn.target = '_blank';
+        subjectBtn.className = 'jc-dl-btn jc-subject';
+        subjectBtn.textContent = '⬇ ورقة الامتحان';
+        dlsEl.appendChild(subjectBtn);
+
+        if (data.has_solution) {
+          const solBtn = document.createElement('a');
+          solBtn.href = `/outputs/${jobId}/solution.pdf`;
+          solBtn.target = '_blank';
+          solBtn.className = 'jc-dl-btn jc-solution';
+          solBtn.textContent = '⬇ التصحيح';
+          dlsEl.appendChild(solBtn);
+        }
+
+        if (data.drive_url) {
+          const driveBtn = document.createElement('a');
+          driveBtn.href = data.drive_url;
+          driveBtn.target = '_blank';
+          driveBtn.className = 'jc-dl-btn jc-drive';
+          driveBtn.textContent = '↗ Drive';
+          dlsEl.appendChild(driveBtn);
+        }
+
+        dlsEl.style.display = 'flex';
+        card.dataset.outcome = 'done';
+      }
+
+      function showBatchSummary(cards) {
+        const done    = cards.filter(c => c.dataset.outcome === 'done').length;
+        const skipped = cards.filter(c => c.dataset.outcome === 'skipped').length;
+        const failed  = cards.filter(c => !c.dataset.outcome).length;
+        let parts = [];
+        if (done)    parts.push(`${done} مكتمل`);
+        if (skipped) parts.push(`${skipped} يحتوي على صور`);
+        if (failed)  parts.push(`${failed} فشل`);
+        batchSummary.textContent = parts.join(' · ');
+        batchSummary.style.display = 'block';
+      }
     </script>
   </body>
 </html>

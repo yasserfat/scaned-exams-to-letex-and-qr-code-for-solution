@@ -66,7 +66,16 @@ def compile_pdfs(work_dir: str, subject: str, year: str, duration: str,
 def process_exam_pdf(pdf_bytes: bytes, work_dir: str,
                      original_filename: str = "exam",
                      compress: bool = True,
-                     manual_crops: bool = False) -> dict:
+                     manual_crops: bool = False,
+                     on_step=None) -> dict:
+    """
+    on_step(step: int, state: str, label: str) is called at each pipeline stage.
+    state is one of: "active", "done", "skipped", "failed".
+    """
+    def _step(step, state, label):
+        if on_step:
+            on_step(step, state, label)
+
     os.makedirs(work_dir, exist_ok=True)
 
     # 1. Compress + encode (skip compression for files already under 2 MB)
@@ -78,8 +87,10 @@ def process_exam_pdf(pdf_bytes: bytes, work_dir: str,
             print(f"  Skipping compression ({len(pdf_bytes)/1024:.0f} KB < 2 MB)")
         data = pdf_bytes
     pdf_b64 = base64.b64encode(data).decode()
+    _step(1, "done", "تم رفع الملف")
 
-    # 2. Single Claude call (Fix 3)
+    # 2. Single Claude call
+    _step(2, "active", "استخراج المحتوى (Claude)...")
     extracted  = extract_all_from_pdf(pdf_b64)
     cost_usd   = extracted.pop("_cost_usd", 0.0)
     subject  = extracted.get("subject", "")
@@ -89,11 +100,13 @@ def process_exam_pdf(pdf_bytes: bytes, work_dir: str,
     solution = extracted.get("solution", "")
     if solution.strip() == "NO_SOLUTION":
         solution = ""
+    _step(2, "done", f"{subject} · {year}")
 
-    # 3. Figure extraction (Fix 4)
+    # 3. Figure extraction
     figures_total = 0
     figures_extracted = 0
     input_pdf_path = os.path.join(work_dir, "input.pdf")
+    _step(3, "active", "فحص الصور...")
     if exam or solution:
         specs = parse_figure_placeholders(exam + "\n" + solution)
         figures_total = len(specs)
@@ -105,6 +118,7 @@ def process_exam_pdf(pdf_bytes: bytes, work_dir: str,
             if manual_crops and specs:
                 # Render page images for the crop UI, then stop — caller will
                 # receive figure specs and trigger /crops when user is done.
+                _step(3, "skipped", f"{len(specs)} صور — يتطلب معالجة يدوية")
                 render_page_images(input_pdf_path, work_dir)
                 return {
                     "needs_crop":      True,
@@ -122,41 +136,52 @@ def process_exam_pdf(pdf_bytes: bytes, work_dir: str,
             figures_extracted = len(figure_map)
             exam     = replace_figure_placeholders(exam,     figure_map)
             solution = replace_figure_placeholders(solution, figure_map)
+    _step(3, "done", f"{figures_extracted} صور" if figures_total else "لا توجد صور")
 
-    # 4. Compile solution.pdf (Fix 1)
+    # 4. Compile solution.pdf
     drive_url = None
     qr_png    = None
     if solution.strip():
+        _step(4, "active", "تجميع التصحيح...")
         sol_latex = build_solution_latex(subject, year, duration, solution)
         ok, err = compile_latex(sol_latex, work_dir, out_stem="solution")
         if not ok:
             print(f"  WARNING: solution.pdf compilation failed: {err}")
+        _step(4, "done", "تم تجميع التصحيح")
 
-        # 5. Upload to Drive (Fix 2)
+        # 5. Upload to Drive
         sol_pdf = os.path.join(work_dir, "solution.pdf")
         if os.path.exists(sol_pdf):
             try:
                 stem = make_exam_stem(subject, year)
                 drive_url = upload_to_drive(sol_pdf, f"{stem}_solution.pdf")
+                _step(5, "done", "تم الرفع إلى Drive")
                 qr_png    = generate_qr_code(drive_url, os.path.join(work_dir, "qr_code.png"))
+                _step(6, "done", "تم إنشاء QR")
             except Exception as e:
                 print(f"  WARNING: Drive upload failed: {e}")
-                # Still generate a placeholder QR so the layout is visible
+                _step(5, "done", "Drive غير متاح")
                 try:
                     qr_png = generate_placeholder_qr(os.path.join(work_dir, "qr_code.png"))
+                    _step(6, "done", "QR مؤقت")
                 except Exception:
                     pass
+    else:
+        _step(4, "done", "لا يوجد تصحيح")
+        _step(5, "done", "—")
+        _step(6, "done", "—")
 
-    # 6. Compile subject.pdf with QR (Fix 1 + Fix 2)
+    # 7. Compile subject.pdf with QR
+    _step(7, "active", "تجميع ورقة الامتحان...")
     qr_rel = "qr_code.png" if (qr_png and os.path.exists(qr_png)) else None
     subj_latex = build_subject_latex(subject, year, duration, exam, qr_rel)
     ok, err = compile_latex(subj_latex, work_dir, out_stem="subject")
     if not ok and qr_rel:
-        # Retry without QR if QR causes compile failure
         subj_latex = build_subject_latex(subject, year, duration, exam, None)
         ok, err = compile_latex(subj_latex, work_dir, out_stem="subject")
     if not ok:
         raise RuntimeError(f"subject.pdf compilation failed: {err}")
+    _step(7, "done", "اكتملت المعالجة")
 
     stem = make_exam_stem(subject, year)
     return {
