@@ -1,0 +1,9 @@
+.env
+*.json
+!template_subject.tex
+!template_solution.tex
+__pycache__/
+*.pyc
+exams_input/
+exams_output/
+jobs/

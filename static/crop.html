@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تحديد الصور يدوياً</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; display: flex; flex-direction: column; }
+
+    header {
+      background: #1e293b;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid #334155;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 16px; font-weight: bold; flex: 1; }
+    header .meta { font-size: 13px; color: #94a3b8; direction: ltr; }
+
+    .main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+
+    /* Left: page viewer */
+    .viewer {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: #0f172a;
+    }
+    .viewer-toolbar {
+      background: #1e293b;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #334155;
+      flex-shrink: 0;
+    }
+    .viewer-toolbar button {
+      background: #334155;
+      color: #e2e8f0;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .viewer-toolbar button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .viewer-toolbar button:hover:not(:disabled) { background: #475569; }
+    .viewer-toolbar span { font-size: 13px; color: #94a3b8; }
+
+    .canvas-wrap {
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 16px;
+      position: relative;
+    }
+    .canvas-container {
+      position: relative;
+      display: inline-block;
+      cursor: crosshair;
+    }
+    #pageImg { display: block; max-width: 100%; user-select: none; }
+    #drawCanvas {
+      position: absolute;
+      top: 0; left: 0;
+      pointer-events: none;
+    }
+    #interactCanvas {
+      position: absolute;
+      top: 0; left: 0;
+      cursor: crosshair;
+    }
+
+    /* Right: figure list */
+    .sidebar {
+      width: 300px;
+      flex-shrink: 0;
+      background: #1e293b;
+      border-right: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .sidebar-header {
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: bold;
+      border-bottom: 1px solid #334155;
+      flex-shrink: 0;
+    }
+    .figure-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+    .figure-item {
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .figure-item:hover { border-color: #475569; }
+    .figure-item.active { border-color: #3b82f6; background: #1e3a5f; }
+    .figure-item.done { border-color: #22c55e; }
+    .figure-item.done.active { border-color: #86efac; }
+    .figure-item .fig-name { font-size: 13px; font-weight: bold; direction: ltr; margin-bottom: 4px; }
+    .figure-item .fig-page { font-size: 12px; color: #94a3b8; }
+    .figure-item .fig-status { font-size: 12px; margin-top: 4px; }
+    .figure-item.done .fig-status { color: #22c55e; }
+    .figure-item:not(.done) .fig-status { color: #f59e0b; }
+
+    .desc-area {
+      padding: 10px 12px;
+      border-top: 1px solid #334155;
+      flex-shrink: 0;
+    }
+    .desc-area label { font-size: 12px; color: #94a3b8; display: block; margin-bottom: 4px; }
+    .desc-area textarea {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 13px;
+      resize: vertical;
+      min-height: 60px;
+      direction: rtl;
+    }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .btn-generate {
+      background: #16a34a;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+    }
+    .btn-generate:hover:not(:disabled) { background: #15803d; }
+    .btn-generate:disabled { background: #1f2d20; color: #4b5563; cursor: not-allowed; }
+    .btn-skip {
+      background: transparent;
+      color: #94a3b8;
+      border: 1px solid #334155;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .btn-skip:hover { background: #1e293b; color: #e2e8f0; }
+
+    .progress-text { font-size: 12px; color: #94a3b8; text-align: center; }
+
+    /* Download panel (shown after compile) */
+    #downloadPanel {
+      display: none;
+      padding: 12px;
+      background: #0f172a;
+      border-top: 1px solid #334155;
+    }
+    #downloadPanel a,
+    #downloadPanel button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+      text-decoration: none;
+      margin-bottom: 6px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .dl-subject  { background: #1d4ed8; color: white; }
+    .dl-solution { background: #059669; color: white; }
+    .dl-drive    { background: #b45309; color: white; }
+    .dl-reset    { background: #334155; color: #cbd5e1; }
+
+    /* Instruction overlay */
+    #instruction {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(30,41,59,0.95);
+      color: #94a3b8;
+      font-size: 13px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .spinner-sm {
+      width: 14px; height: 14px;
+      border: 2px solid #94a3b8;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>تحديد الصور يدوياً</h1>
+  <div class="meta" id="headerMeta">جاري التحميل...</div>
+</header>
+
+<div class="main">
+  <!-- Right sidebar: figure list -->
+  <div class="sidebar">
+    <div class="sidebar-header">الصور المكتشفة (<span id="figCount">0</span>)</div>
+    <div class="figure-list" id="figureList"></div>
+
+    <div class="desc-area">
+      <label>وصف الصورة (اختياري — يساعد الذكاء الاصطناعي)</label>
+      <textarea id="descInput" placeholder="مثال: دارة كهربائية بمولد ومصباح ومقاطع..."></textarea>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="progress-text" id="progressText">اختر صورة واسحب لتحديد المنطقة</div>
+      <button class="btn-generate" id="btnGenerate" disabled>توليد ملفات PDF</button>
+      <button class="btn-skip" id="btnSkip">تخطي التحديد اليدوي</button>
+    </div>
+
+    <div id="downloadPanel">
+      <a id="dlSubject"  class="dl-subject"  href="#" target="_blank">تحميل ورقة الامتحان</a>
+      <a id="dlSolution" class="dl-solution" href="#" target="_blank" style="display:none">تحميل التصحيح</a>
+      <a id="dlDrive"    class="dl-drive"    href="#" target="_blank" style="display:none">Google Drive</a>
+      <button class="dl-reset" onclick="window.location.href='/'">↑ رفع امتحان جديد</button>
+    </div>
+  </div>
+
+  <!-- Left: canvas viewer -->
+  <div class="viewer">
+    <div class="viewer-toolbar">
+      <button id="btnPrev" disabled>→ السابقة</button>
+      <span id="pageIndicator">صفحة 1 / 1</span>
+      <button id="btnNext" disabled>التالية ←</button>
+      <span style="flex:1"></span>
+      <span id="toolHint" style="font-size:12px;color:#64748b">اسحب لرسم منطقة الصورة</span>
+    </div>
+    <div class="canvas-wrap" id="canvasWrap">
+      <div class="canvas-container" id="canvasContainer">
+        <img id="pageImg" alt="page" />
+        <canvas id="drawCanvas"></canvas>
+        <canvas id="interactCanvas"></canvas>
+      </div>
+      <div id="instruction">اختر صورة من القائمة، ثم اسحب لتحديد منطقتها</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const params   = new URLSearchParams(location.search);
+const JOB_ID   = params.get('job');
+const BASE     = `/outputs/${JOB_ID}`;
+
+let state      = null;   // loaded from state.json
+let figures    = [];     // [{name, page, top, left, bottom, right, description, cropped}]
+let currentFig = null;   // index of selected figure
+let currentPage= 1;
+let pageCount  = 1;
+let imgNatW    = 1, imgNatH = 1;  // natural image dimensions for coordinate mapping
+
+// Canvas drawing state
+let drawing    = false;
+let startX     = 0, startY = 0;
+
+const pageImg       = document.getElementById('pageImg');
+const drawCanvas    = document.getElementById('drawCanvas');
+const interactCanvas= document.getElementById('interactCanvas');
+const drawCtx       = drawCanvas.getContext('2d');
+const interactCtx   = interactCanvas.getContext('2d');
+const figureList    = document.getElementById('figureList');
+const btnGenerate   = document.getElementById('btnGenerate');
+const btnSkip       = document.getElementById('btnSkip');
+const btnPrev       = document.getElementById('btnPrev');
+const btnNext       = document.getElementById('btnNext');
+const pageIndicator = document.getElementById('pageIndicator');
+const progressText  = document.getElementById('progressText');
+const descInput     = document.getElementById('descInput');
+const instruction   = document.getElementById('instruction');
+
+// ── Load state ────────────────────────────────────────────────────────────────
+async function init() {
+  if (!JOB_ID) { alert('خطأ: لا يوجد job_id في الرابط'); return; }
+
+  const r = await fetch(`${BASE}/state.json`);
+  if (!r.ok) { alert('تعذّر تحميل بيانات المهمة'); return; }
+  state = await r.json();
+
+  document.getElementById('headerMeta').textContent =
+    `${state.subject} · ${state.year} · ${state.duration}`;
+  document.getElementById('figCount').textContent = state.figure_specs.length;
+  pageCount = state.page_count || 1;
+
+  figures = state.figure_specs.map(s => ({
+    name:        s.name,
+    label:       s.label || '',
+    page:        s.page,
+    top:         s.top,
+    left:        s.left,
+    bottom:      s.bottom,
+    right:       s.right,
+    description: '',
+    cropped:     false,
+  }));
+
+  renderFigureList();
+  loadPage(1);
+  if (figures.length > 0) selectFigure(0);
+}
+
+// ── Page loading ──────────────────────────────────────────────────────────────
+function loadPage(n) {
+  currentPage = n;
+  pageIndicator.textContent = `صفحة ${n} / ${pageCount}`;
+  btnPrev.disabled = n <= 1;
+  btnNext.disabled = n >= pageCount;
+
+  pageImg.onload = () => {
+    imgNatW = pageImg.naturalWidth;
+    imgNatH = pageImg.naturalHeight;
+    resizeCanvases();
+    redrawAll();
+  };
+  pageImg.src = `${BASE}/pages/page_${n}.png?t=${Date.now()}`;
+}
+
+function resizeCanvases() {
+  const w = pageImg.offsetWidth;
+  const h = pageImg.offsetHeight;
+  drawCanvas.width = interactCanvas.width = w;
+  drawCanvas.height = interactCanvas.height = h;
+}
+
+btnPrev.onclick = () => loadPage(currentPage - 1);
+btnNext.onclick = () => loadPage(currentPage + 1);
+
+window.addEventListener('resize', () => { resizeCanvases(); redrawAll(); });
+
+// ── Figure list ───────────────────────────────────────────────────────────────
+function renderFigureList() {
+  figureList.innerHTML = '';
+  figures.forEach((f, i) => {
+    const el = document.createElement('div');
+    el.className = 'figure-item' + (f.cropped ? ' done' : '') + (currentFig === i ? ' active' : '');
+    const displayName = f.label || f.name;
+    el.innerHTML = `
+      <div class="fig-name">${displayName}</div>
+      <div class="fig-page">صفحة ${f.page}</div>
+      <div class="fig-status">${f.cropped ? '✓ تم التحديد' : '○ في انتظار التحديد'}</div>
+    `;
+    el.onclick = () => selectFigure(i);
+    figureList.appendChild(el);
+  });
+  updateProgress();
+}
+
+function selectFigure(i) {
+  if (currentFig !== null) {
+    // Save description for current figure
+    if (currentFig < figures.length)
+      figures[currentFig].description = descInput.value;
+  }
+  currentFig = i;
+  descInput.value = figures[i].description || '';
+
+  // Navigate to the figure's page
+  if (figures[i].page !== currentPage) {
+    loadPage(figures[i].page);
+  } else {
+    redrawAll();
+  }
+
+  renderFigureList();
+  const label = figures[i].label || figures[i].name;
+  instruction.textContent = `اسحب لتحديد منطقة "${label}"`;
+}
+
+// ── Canvas drawing ────────────────────────────────────────────────────────────
+function imgToCanvas(fx, fy) {
+  // Convert fractional image coords to canvas pixels
+  const scaleX = drawCanvas.width  / imgNatW;
+  const scaleY = drawCanvas.height / imgNatH;
+  return { x: fx * imgNatW * scaleX, y: fy * imgNatH * scaleY };
+}
+
+function canvasToFrac(cx, cy) {
+  return { x: cx / drawCanvas.width, y: cy / drawCanvas.height };
+}
+
+function redrawAll() {
+  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+
+  figures.forEach((f, i) => {
+    if (f.page !== currentPage) return;
+    if (!f.cropped && i !== currentFig) return;
+
+    const tl = imgToCanvas(f.left, f.top);
+    const br = imgToCanvas(f.right, f.bottom);
+    const w  = br.x - tl.x;
+    const h  = br.y - tl.y;
+
+    if (i === currentFig) {
+      // Active: solid blue border
+      drawCtx.strokeStyle = '#3b82f6';
+      drawCtx.lineWidth   = 2;
+      drawCtx.setLineDash([]);
+      drawCtx.fillStyle   = 'rgba(59,130,246,0.08)';
+    } else {
+      // Done, not active: green dashed
+      drawCtx.strokeStyle = '#22c55e';
+      drawCtx.lineWidth   = 1.5;
+      drawCtx.setLineDash([6, 4]);
+      drawCtx.fillStyle   = 'rgba(34,197,94,0.06)';
+    }
+
+    drawCtx.fillRect(tl.x, tl.y, w, h);
+    drawCtx.strokeRect(tl.x, tl.y, w, h);
+    drawCtx.setLineDash([]);
+
+    // Label
+    drawCtx.fillStyle = i === currentFig ? '#3b82f6' : '#22c55e';
+    drawCtx.font = 'bold 13px Arial';
+    drawCtx.fillText(f.label || f.name, tl.x + 4, tl.y - 4);
+  });
+}
+
+// Mouse events on interactCanvas
+interactCanvas.addEventListener('mousedown', e => {
+  if (currentFig === null) return;
+  drawing = true;
+  const r = interactCanvas.getBoundingClientRect();
+  startX = e.clientX - r.left;
+  startY = e.clientY - r.top;
+});
+
+interactCanvas.addEventListener('mousemove', e => {
+  if (!drawing) return;
+  const r = interactCanvas.getBoundingClientRect();
+  const cx = e.clientX - r.left;
+  const cy = e.clientY - r.top;
+
+  interactCtx.clearRect(0, 0, interactCanvas.width, interactCanvas.height);
+  interactCtx.strokeStyle = '#ef4444';
+  interactCtx.lineWidth   = 2;
+  interactCtx.setLineDash([]);
+  interactCtx.strokeRect(startX, startY, cx - startX, cy - startY);
+  interactCtx.fillStyle = 'rgba(239,68,68,0.08)';
+  interactCtx.fillRect(startX, startY, cx - startX, cy - startY);
+});
+
+interactCanvas.addEventListener('mouseup', e => {
+  if (!drawing || currentFig === null) return;
+  drawing = false;
+  interactCtx.clearRect(0, 0, interactCanvas.width, interactCanvas.height);
+
+  const r  = interactCanvas.getBoundingClientRect();
+  const ex = e.clientX - r.left;
+  const ey = e.clientY - r.top;
+
+  // Normalize so top-left is always smaller
+  const x1 = Math.min(startX, ex) / drawCanvas.width;
+  const y1 = Math.min(startY, ey) / drawCanvas.height;
+  const x2 = Math.max(startX, ex) / drawCanvas.width;
+  const y2 = Math.max(startY, ey) / drawCanvas.height;
+
+  if (x2 - x1 < 0.01 || y2 - y1 < 0.01) return; // too small, ignore
+
+  figures[currentFig].left   = Math.max(0, x1);
+  figures[currentFig].top    = Math.max(0, y1);
+  figures[currentFig].right  = Math.min(1, x2);
+  figures[currentFig].bottom = Math.min(1, y2);
+  figures[currentFig].cropped= true;
+  figures[currentFig].description = descInput.value;
+
+  // Auto-advance to next uncropped figure
+  const nextUncropped = figures.findIndex((f, i) => i > currentFig && !f.cropped);
+  if (nextUncropped !== -1) {
+    selectFigure(nextUncropped);
+  } else {
+    renderFigureList();
+    redrawAll();
+  }
+});
+
+// Touch support
+interactCanvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  const r = interactCanvas.getBoundingClientRect();
+  const me = new MouseEvent('mousedown', { clientX: t.clientX, clientY: t.clientY });
+  interactCanvas.dispatchEvent(me);
+}, { passive: false });
+interactCanvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  const me = new MouseEvent('mousemove', { clientX: t.clientX, clientY: t.clientY });
+  interactCanvas.dispatchEvent(me);
+}, { passive: false });
+interactCanvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  const me = new MouseEvent('mouseup', { clientX: t.clientX, clientY: t.clientY });
+  interactCanvas.dispatchEvent(me);
+}, { passive: false });
+
+// ── Progress + generate ───────────────────────────────────────────────────────
+function updateProgress() {
+  const done  = figures.filter(f => f.cropped).length;
+  const total = figures.length;
+  progressText.textContent = `تم تحديد ${done} / ${total} صورة`;
+  btnGenerate.disabled = done === 0;
+  if (done === total && total > 0) {
+    btnGenerate.textContent = 'توليد ملفات PDF ✓';
+  }
+}
+
+btnGenerate.onclick = async () => {
+  // Save current description
+  if (currentFig !== null)
+    figures[currentFig].description = descInput.value;
+
+  btnGenerate.disabled = true;
+  btnGenerate.innerHTML = 'جاري التوليد...<span class="spinner-sm"></span>';
+
+  const crops = figures.filter(f => f.cropped).map(f => ({
+    name:        f.name,
+    page:        f.page,
+    top:         f.top,
+    left:        f.left,
+    bottom:      f.bottom,
+    right:       f.right,
+    description: f.description,
+  }));
+
+  try {
+    const r = await fetch(`${BASE}/crops`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ crops }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'خطأ في الخادم');
+    showDownloads(data);
+  } catch(e) {
+    alert(`فشل التوليد: ${e.message}`);
+    btnGenerate.disabled = false;
+    btnGenerate.textContent = 'توليد ملفات PDF';
+  }
+};
+
+btnSkip.onclick = async () => {
+  btnSkip.disabled = true;
+  btnSkip.textContent = 'جاري المعالجة...';
+  try {
+    const r = await fetch(`${BASE}/skip-crops`, { method: 'POST' });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'خطأ');
+    showDownloads(data);
+  } catch(e) {
+    alert(`فشل: ${e.message}`);
+    btnSkip.disabled = false;
+    btnSkip.textContent = 'تخطي التحديد اليدوي';
+  }
+};
+
+function showDownloads(data) {
+  btnGenerate.textContent = '✓ تم التوليد';
+  btnSkip.style.display = 'none';
+  progressText.textContent = `تم توليد الملفات بنجاح`;
+
+  const panel = document.getElementById('downloadPanel');
+  panel.style.display = 'block';
+
+  document.getElementById('dlSubject').href = data.subject_pdf;
+
+  const dlSol = document.getElementById('dlSolution');
+  if (data.solution_pdf && data.has_solution) {
+    dlSol.href = data.solution_pdf;
+    dlSol.style.display = 'block';
+  }
+
+  const dlDrive = document.getElementById('dlDrive');
+  if (data.drive_url) {
+    dlDrive.href = data.drive_url;
+    dlDrive.style.display = 'block';
+  }
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
