@@ -1,6 +1,8 @@
 import asyncio
 import json
 import os
+import shutil
+import time
 import uuid
 
 from fastapi import FastAPI, Header, UploadFile, File
@@ -10,6 +12,24 @@ from pydantic import BaseModel
 
 from src.orchestrator import process_exam_pdf, compile_pdfs
 from src.figures import extract_figures_from_pdf, replace_figure_placeholders
+
+
+def _sweep_outputs(ttl_days: int = 7):
+    """Delete outputs/<uuid>/ folders older than ttl_days (mtime-based)."""
+    root = "outputs"
+    if not os.path.isdir(root):
+        return
+    cutoff = time.time() - ttl_days * 86400
+    for name in os.listdir(root):
+        path = os.path.join(root, name)
+        try:
+            if os.path.isdir(path) and os.path.getmtime(path) < cutoff:
+                shutil.rmtree(path, ignore_errors=True)
+        except OSError:
+            pass
+
+
+_sweep_outputs()
 
 app = FastAPI()
 

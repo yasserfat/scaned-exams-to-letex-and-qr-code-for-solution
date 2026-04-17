@@ -694,7 +694,15 @@
         'تجميع ورقة الامتحان',               // 7
       ];
 
-      function startBatch(files) {
+      async function startBatch(files) {
+        // Cost estimate: conservative $0.20 per file (observed range $0.05–$0.20)
+        const EST_PER_FILE = 0.20;
+        const estTotal = files.length * EST_PER_FILE;
+        if (estTotal > 2.0) {
+          const ok = confirm(`معالجة ${files.length} ملف ≈ $${estTotal.toFixed(2)}. متابعة؟`);
+          if (!ok) return;
+        }
+
         // Hide single-file UI
         singleFileUI.style.display = 'none';
         batchGrid.innerHTML = '';
@@ -702,9 +710,27 @@
         batchSummary.style.display = 'none';
 
         const cards = files.map(f => createCard(f.name));
-        const promises = files.map((file, i) => processOneBatch(file, cards[i]));
 
-        Promise.allSettled(promises).then(() => showBatchSummary(cards));
+        // Show estimate in the summary area while the batch runs
+        batchSummary.textContent = `${files.length} ملف · التكلفة المتوقعة ≈ $${estTotal.toFixed(2)}`;
+        batchSummary.style.display = 'block';
+
+        // Concurrency pool: at most POOL /process requests in flight at once.
+        // Keeps Anthropic concurrent-request use bounded and cost predictable.
+        const POOL = 3;
+        let next = 0;
+        async function worker() {
+          while (next < files.length) {
+            const i = next++;
+            await processOneBatch(files[i], cards[i]);
+          }
+        }
+        const workers = Array.from(
+          { length: Math.min(POOL, files.length) },
+          () => worker()
+        );
+        await Promise.all(workers);
+        showBatchSummary(cards);
       }
 
       function createCard(filename) {
