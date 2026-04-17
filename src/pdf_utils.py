@@ -1,26 +1,22 @@
 import re
 import os
 import unicodedata
-from datetime import datetime
 import fitz
 
 
 def make_exam_stem(subject: str, year: str) -> str:
-    """Build a clean ASCII filename stem from subject + year + date.
-    Example: 'رياضيات_2025_2026-04-13'
+    """Build a stable filename stem from subject + year only (no date).
+    Same exam + year always produces the same stem. Example: 'رياضيات_2025'.
     """
-    # Transliterate Arabic to ASCII where possible, else keep as-is then strip non-alphanum
     try:
         slug = unicodedata.normalize("NFKD", subject).encode("ascii", "ignore").decode()
     except Exception:
         slug = ""
     slug = re.sub(r"[^\w]+", "_", slug).strip("_")
     if not slug:
-        # Fall back to raw Arabic stripped of spaces — still meaningful in filenames
         slug = re.sub(r"\s+", "_", subject.strip())
     year_clean = re.sub(r"[^\w-]", "", year) or "unknown"
-    date_str = datetime.now().strftime("%Y-%m-%d")
-    return f"{slug}_{year_clean}_{date_str}" if slug else f"exam_{year_clean}_{date_str}"
+    return f"{slug}_{year_clean}" if slug else f"exam_{year_clean}"
 
 
 _OCR_AVAILABLE: bool | None = None

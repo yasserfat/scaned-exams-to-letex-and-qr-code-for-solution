@@ -200,6 +200,10 @@ async def apply_crops(job_id: str, payload: CropsPayload):
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+    state["stem"] = result.get("stem", "exam")
+    with open(state_path, "w", encoding="utf-8") as f:
+        json.dump(state, f, ensure_ascii=False, indent=2)
+
     return JSONResponse(content={
         "subject_pdf":  f"/outputs/{job_id}/subject.pdf",
         "solution_pdf": f"/outputs/{job_id}/solution.pdf" if result["solution_pdf"] else None,
@@ -240,6 +244,10 @@ async def skip_crops(job_id: str):
         )
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
+
+    state["stem"] = result.get("stem", "exam")
+    with open(state_path, "w", encoding="utf-8") as f:
+        json.dump(state, f, ensure_ascii=False, indent=2)
 
     return JSONResponse(content={
         "subject_pdf":  f"/outputs/{job_id}/subject.pdf",

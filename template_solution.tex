@@ -9,6 +9,8 @@
 \usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{enumitem}
+\usepackage{hyperref}
+\hypersetup{pdftitle={%%PDF_TITLE%%},pdfauthor={},pdfsubject={},pdfkeywords={},hidelinks}
 
 % ── Language Setup ──
 \usepackage{polyglossia}
@@ -63,8 +65,8 @@
 \fancyfoot[C]{%
   \noindent\fbox{%
     \begin{minipage}[c][1.1cm][c]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}%
-      \hspace{0.5em}{\large\bfseries\textarabic{بالتوفيـــــق}}\hfill
-      %%QR_FOOTER_LABEL%%%%QR_FOOTER%%\hspace{0.4em}%
+      \hspace{0.5em}\raisebox{0.18cm}{\large\bfseries\textarabic{بالتوفيـــــق}}\hfill
+      \raisebox{0.18cm}{%%QR_FOOTER_LABEL%%}%%QR_FOOTER%%\hspace{0.4em}%
       \includegraphics[height=0.85cm]{logo.png}\hspace{0.5em}
     \end{minipage}%
   }%

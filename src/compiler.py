@@ -27,9 +27,15 @@ def clean_latex(raw: str) -> str:
 
 # ── LaTeX builders ────────────────────────────────────────────────────────────
 
+def _pdf_title_sanitize(s: str) -> str:
+    """Escape chars that break hyperref pdftitle."""
+    return s.replace("\\", "").replace("{", "").replace("}", "")
+
+
 def build_subject_latex(subject: str, year: str, duration: str,
                         exam_content: str,
-                        qr_image_path: str | None = None) -> str:
+                        qr_image_path: str | None = None,
+                        pdf_title: str = "") -> str:
     qr_footer = (
         rf"\includegraphics[height=0.85cm]{{{qr_image_path}}}%"
     ) if qr_image_path else ""
@@ -51,11 +57,13 @@ def build_subject_latex(subject: str, year: str, duration: str,
     latex = latex.replace("%%QR_FOOTER_LABEL%%",  qr_footer_label)
     latex = latex.replace("%%QR_FOOTER%%",        qr_footer)
     latex = latex.replace("%%QR_CODE%%",          qr_block)
+    latex = latex.replace("%%PDF_TITLE%%",        _pdf_title_sanitize(pdf_title))
     return latex
 
 
 def build_solution_latex(subject: str, year: str, duration: str,
-                         solution_content: str) -> str:
+                         solution_content: str,
+                         pdf_title: str = "") -> str:
     latex = SOLUTION_TEMPLATE
     latex = latex.replace("%%SUBJECT%%",          subject.strip()  or "الرياضيات")
     latex = latex.replace("%%YEAR%%",             year.strip()     or "----")
@@ -63,6 +71,7 @@ def build_solution_latex(subject: str, year: str, duration: str,
     latex = latex.replace("%%SOLUTION_CONTENT%%", clean_latex(solution_content))
     latex = latex.replace("%%QR_FOOTER_LABEL%%",  "")
     latex = latex.replace("%%QR_FOOTER%%",        "")
+    latex = latex.replace("%%PDF_TITLE%%",        _pdf_title_sanitize(pdf_title))
     return latex
 
 

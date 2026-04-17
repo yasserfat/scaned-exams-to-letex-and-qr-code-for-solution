@@ -22,7 +22,8 @@ def compile_pdfs(work_dir: str, subject: str, year: str, duration: str,
     qr_png = None
 
     if solution.strip():
-        sol_latex = build_solution_latex(subject, year, duration, solution)
+        sol_latex = build_solution_latex(subject, year, duration, solution,
+                                         pdf_title=f"{make_exam_stem(subject, year)}_solution")
         ok, err = compile_latex(sol_latex, work_dir, out_stem="solution")
         if not ok:
             print(f"  WARNING: solution.pdf compilation failed: {err}")
@@ -42,15 +43,16 @@ def compile_pdfs(work_dir: str, subject: str, year: str, duration: str,
                     pass
 
     qr_rel = "qr_code.png" if (qr_png and os.path.exists(qr_png)) else None
-    subj_latex = build_subject_latex(subject, year, duration, exam, qr_rel)
+    stem = make_exam_stem(subject, year)
+    subj_title = f"{stem}_subject"
+    subj_latex = build_subject_latex(subject, year, duration, exam, qr_rel, pdf_title=subj_title)
     ok, err = compile_latex(subj_latex, work_dir, out_stem="subject")
     if not ok and qr_rel:
-        subj_latex = build_subject_latex(subject, year, duration, exam, None)
+        subj_latex = build_subject_latex(subject, year, duration, exam, None, pdf_title=subj_title)
         ok, err = compile_latex(subj_latex, work_dir, out_stem="subject")
     if not ok:
         raise RuntimeError(f"subject.pdf compilation failed: {err}")
 
-    stem = make_exam_stem(subject, year)
     try:
         subj_tex = os.path.join(work_dir, "subject.tex")
         if os.path.exists(subj_tex):
@@ -65,6 +67,7 @@ def compile_pdfs(work_dir: str, subject: str, year: str, duration: str,
         "subject":      subject,
         "year":         year,
         "duration":     duration,
+        "stem":         stem,
         "subject_pdf":  os.path.join(work_dir, "subject.pdf"),
         "solution_pdf": os.path.join(work_dir, "solution.pdf") if solution.strip() else None,
         "drive_url":    drive_url,
@@ -154,7 +157,8 @@ def process_exam_pdf(pdf_bytes: bytes, work_dir: str,
     qr_png    = None
     if solution.strip():
         _step(4, "active", "تجميع التصحيح...")
-        sol_latex = build_solution_latex(subject, year, duration, solution)
+        sol_latex = build_solution_latex(subject, year, duration, solution,
+                                         pdf_title=f"{make_exam_stem(subject, year)}_solution")
         ok, err = compile_latex(sol_latex, work_dir, out_stem="solution")
         if not ok:
             print(f"  WARNING: solution.pdf compilation failed: {err}")
@@ -185,16 +189,16 @@ def process_exam_pdf(pdf_bytes: bytes, work_dir: str,
     # 7. Compile subject.pdf with QR
     _step(7, "active", "تجميع ورقة الامتحان...")
     qr_rel = "qr_code.png" if (qr_png and os.path.exists(qr_png)) else None
-    subj_latex = build_subject_latex(subject, year, duration, exam, qr_rel)
+    stem = make_exam_stem(subject, year)
+    subj_title = f"{stem}_subject"
+    subj_latex = build_subject_latex(subject, year, duration, exam, qr_rel, pdf_title=subj_title)
     ok, err = compile_latex(subj_latex, work_dir, out_stem="subject")
     if not ok and qr_rel:
-        subj_latex = build_subject_latex(subject, year, duration, exam, None)
+        subj_latex = build_subject_latex(subject, year, duration, exam, None, pdf_title=subj_title)
         ok, err = compile_latex(subj_latex, work_dir, out_stem="subject")
     if not ok:
         raise RuntimeError(f"subject.pdf compilation failed: {err}")
     _step(7, "done", "اكتملت المعالجة")
-
-    stem = make_exam_stem(subject, year)
 
     # Upload .tex sources to separate Drive folder (best-effort)
     try:
