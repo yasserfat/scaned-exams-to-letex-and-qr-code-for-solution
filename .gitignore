@@ -7,3 +7,6 @@ __pycache__/
 exams_input/
 exams_output/
 jobs/
+outputs/
+graphify-out/
+.env.old
