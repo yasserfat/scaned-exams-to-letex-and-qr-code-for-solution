@@ -349,6 +349,7 @@
       .jc-subject  { background: #1e293b; color: white; }
       .jc-solution { background: #0f766e; color: white; }
       .jc-drive    { background: #b45309; color: white; }
+      .jc-crop     { background: #b45309; color: white; }
 
       .jc-skip-notice {
         font-size: 12px;
@@ -855,8 +856,20 @@
           cardStep(card, 3, 'skipped', `${data.figure_specs.length} صور`);
           cardBadge(card, 'skipped', 'يحتوي على صور');
           const skipEl = card.querySelector('.jc-skip-notice');
-          skipEl.textContent = `يحتوي على ${data.figure_specs.length} صور — افتح الامتحان بالواجهة الفردية للمعالجة اليدوية`;
+          skipEl.textContent = `يحتوي على ${data.figure_specs.length} صور — افتح الامتحان في تبويب جديد لتحديد الصور يدويًا`;
           skipEl.style.display = 'block';
+
+          const dlsEl = card.querySelector('.jc-downloads');
+          dlsEl.innerHTML = '';
+          const cropBtn = document.createElement('a');
+          cropBtn.href = `/crop.html?job=${jobId}`;
+          cropBtn.target = '_blank';
+          cropBtn.rel = 'noopener';
+          cropBtn.className = 'jc-dl-btn jc-crop';
+          cropBtn.textContent = '↗ افتح واجهة التحديد';
+          dlsEl.appendChild(cropBtn);
+          dlsEl.style.display = 'flex';
+
           card.dataset.outcome = 'skipped';
           return;
         }
