@@ -33,12 +33,24 @@ def build_subject_latex(subject: str, year: str, duration: str,
     qr_footer = (
         rf"\includegraphics[height=0.85cm]{{{qr_image_path}}}%"
     ) if qr_image_path else ""
+    qr_footer_label = (
+        r"{\small لتحميل التصحيح}\hspace{0.4em}%"
+    ) if qr_image_path else ""
+    qr_block = (
+        r"\vspace{1cm}" "\n"
+        r"\begin{center}" "\n"
+        r"  {\small رمز الاستجابة السريعة للوصول إلى التصحيح النموذجي}\\[0.4em]" "\n"
+        rf"  \includegraphics[width=3cm]{{{qr_image_path}}}" "\n"
+        r"\end{center}"
+    ) if qr_image_path else ""
     latex = SUBJECT_TEMPLATE
-    latex = latex.replace("%%SUBJECT%%",      subject.strip()  or "الرياضيات")
-    latex = latex.replace("%%YEAR%%",         year.strip()     or "----")
-    latex = latex.replace("%%DURATION%%",     duration.strip() or "----")
-    latex = latex.replace("%%EXAM_CONTENT%%", clean_latex(exam_content))
-    latex = latex.replace("%%QR_FOOTER%%",    qr_footer)
+    latex = latex.replace("%%SUBJECT%%",          subject.strip()  or "الرياضيات")
+    latex = latex.replace("%%YEAR%%",             year.strip()     or "----")
+    latex = latex.replace("%%DURATION%%",         duration.strip() or "----")
+    latex = latex.replace("%%EXAM_CONTENT%%",     clean_latex(exam_content))
+    latex = latex.replace("%%QR_FOOTER_LABEL%%",  qr_footer_label)
+    latex = latex.replace("%%QR_FOOTER%%",        qr_footer)
+    latex = latex.replace("%%QR_CODE%%",          qr_block)
     return latex
 
 
@@ -49,6 +61,7 @@ def build_solution_latex(subject: str, year: str, duration: str,
     latex = latex.replace("%%YEAR%%",             year.strip()     or "----")
     latex = latex.replace("%%DURATION%%",         duration.strip() or "----")
     latex = latex.replace("%%SOLUTION_CONTENT%%", clean_latex(solution_content))
+    latex = latex.replace("%%QR_FOOTER_LABEL%%",  "")
     latex = latex.replace("%%QR_FOOTER%%",        "")
     return latex
 
