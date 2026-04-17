@@ -88,7 +88,7 @@ def compile_latex(latex_code: str, work_dir: str,
     for _ in range(2):
         subprocess.run(
             ["xelatex", "-interaction=nonstopmode", f"{out_stem}.tex"],
-            cwd=work_dir, capture_output=True, timeout=120
+            cwd=work_dir, capture_output=True, timeout=1200
         )
     pdf_path = os.path.join(work_dir, f"{out_stem}.pdf")
     if not os.path.exists(pdf_path):
