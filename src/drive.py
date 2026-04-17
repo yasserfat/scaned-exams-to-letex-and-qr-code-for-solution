@@ -37,14 +37,18 @@ def _get_drive_service():
 
 
 def upload_to_drive(local_pdf_path: str, filename: str,
-                    folder_id: str | None = None) -> str:
-    """Upload to Drive via OAuth user account. Returns shareable URL."""
+                    folder_id: str | None = None,
+                    mimetype: str = "application/pdf",
+                    public: bool | None = None) -> str:
+    """Upload file to Drive via OAuth user account. Returns shareable URL."""
     with _drive_lock:
-        return _upload(local_pdf_path, filename, folder_id)
+        return _upload(local_pdf_path, filename, folder_id, mimetype, public)
 
 
-def _upload(local_pdf_path: str, filename: str,
-            folder_id: str | None = None) -> str:
+def _upload(local_path: str, filename: str,
+            folder_id: str | None,
+            mimetype: str,
+            public: bool | None) -> str:
     service = _get_drive_service()
 
     folder_id = folder_id or os.environ.get("GOOGLE_DRIVE_FOLDER_ID")
@@ -52,13 +56,29 @@ def _upload(local_pdf_path: str, filename: str,
     if folder_id:
         metadata["parents"] = [folder_id]
 
-    media = MediaFileUpload(local_pdf_path, mimetype="application/pdf", resumable=True)
+    media = MediaFileUpload(local_path, mimetype=mimetype, resumable=True)
     file_obj = service.files().create(body=metadata, media_body=media, fields="id").execute()
     file_id = file_obj["id"]
 
-    if os.environ.get("GOOGLE_DRIVE_PUBLIC", "true").lower() == "true":
+    if public is None:
+        public = os.environ.get("GOOGLE_DRIVE_PUBLIC", "true").lower() == "true"
+    if public:
         service.permissions().create(
             fileId=file_id, body={"role": "reader", "type": "anyone"}
         ).execute()
 
     return f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
+
+
+def upload_tex_to_drive(local_tex_path: str, filename: str) -> str:
+    """Upload .tex source to the separate tex folder (GOOGLE_DRIVE_TEX_FOLDER_ID).
+
+    Falls back to GOOGLE_DRIVE_FOLDER_ID if the tex-specific env isn't set.
+    Uses text/x-tex so Drive shows it as text, not binary.
+    """
+    tex_folder = (os.environ.get("GOOGLE_DRIVE_TEX_FOLDER_ID")
+                  or os.environ.get("GOOGLE_DRIVE_FOLDER_ID"))
+    return upload_to_drive(local_tex_path, filename,
+                           folder_id=tex_folder,
+                           mimetype="text/x-tex",
+                           public=False)

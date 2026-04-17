@@ -90,6 +90,7 @@ Create a `.env` file in the project root:
 ```
 ANTHROPIC_API_KEY=sk-ant-...
 GOOGLE_DRIVE_FOLDER_ID=1ABC...XYZ
+GOOGLE_DRIVE_TEX_FOLDER_ID=1DEF...UVW
 GOOGLE_DRIVE_PUBLIC=true
 ```
 

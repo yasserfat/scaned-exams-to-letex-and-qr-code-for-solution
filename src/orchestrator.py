@@ -4,7 +4,7 @@ import fitz
 from src.claude import extract_all_from_pdf
 from src.pdf_utils import compress_pdf_bytes, render_page_images, make_exam_stem
 from src.figures import parse_figure_placeholders, extract_figures_from_pdf, replace_figure_placeholders
-from src.drive import upload_to_drive
+from src.drive import upload_to_drive, upload_tex_to_drive
 from src.compiler import (
     build_subject_latex, build_solution_latex,
     compile_latex, generate_qr_code, generate_placeholder_qr,
@@ -49,6 +49,17 @@ def compile_pdfs(work_dir: str, subject: str, year: str, duration: str,
         ok, err = compile_latex(subj_latex, work_dir, out_stem="subject")
     if not ok:
         raise RuntimeError(f"subject.pdf compilation failed: {err}")
+
+    stem = make_exam_stem(subject, year)
+    try:
+        subj_tex = os.path.join(work_dir, "subject.tex")
+        if os.path.exists(subj_tex):
+            upload_tex_to_drive(subj_tex, f"{stem}_subject.tex")
+        sol_tex = os.path.join(work_dir, "solution.tex")
+        if solution.strip() and os.path.exists(sol_tex):
+            upload_tex_to_drive(sol_tex, f"{stem}_solution.tex")
+    except Exception as e:
+        print(f"  WARNING: .tex upload failed: {e}")
 
     return {
         "subject":      subject,
@@ -184,6 +195,17 @@ def process_exam_pdf(pdf_bytes: bytes, work_dir: str,
     _step(7, "done", "اكتملت المعالجة")
 
     stem = make_exam_stem(subject, year)
+
+    # Upload .tex sources to separate Drive folder (best-effort)
+    try:
+        subj_tex = os.path.join(work_dir, "subject.tex")
+        if os.path.exists(subj_tex):
+            upload_tex_to_drive(subj_tex, f"{stem}_subject.tex")
+        sol_tex = os.path.join(work_dir, "solution.tex")
+        if solution.strip() and os.path.exists(sol_tex):
+            upload_tex_to_drive(sol_tex, f"{stem}_solution.tex")
+    except Exception as e:
+        print(f"  WARNING: .tex upload failed: {e}")
     return {
         "subject":           subject,
         "year":              year,
