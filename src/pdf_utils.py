@@ -23,14 +23,31 @@ def make_exam_stem(subject: str, year: str) -> str:
     return f"{slug}_{year_clean}_{date_str}" if slug else f"exam_{year_clean}_{date_str}"
 
 
+_OCR_AVAILABLE: bool | None = None
+
+
 def compress_pdf_bytes(pdf_bytes: bytes, dpi: int = 100) -> bytes:
-    """Re-render each PDF page at lower DPI using PyMuPDF to reduce file size."""
+    """Re-render each PDF page at lower DPI using PyMuPDF to reduce file size.
+
+    Uses Tesseract (via PyMuPDF's pdfocr_tobytes) to produce searchable PDFs
+    when available. If Tesseract isn't installed, falls back to a plain
+    image-only PDF so the pipeline still works.
+    """
+    global _OCR_AVAILABLE
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     out = fitz.open()
     mat = fitz.Matrix(dpi / 72, dpi / 72)
     for page in doc:
-        pix    = page.get_pixmap(matrix=mat, alpha=False)
-        imgpdf = fitz.open("pdf", pix.pdfocr_tobytes())
+        pix = page.get_pixmap(matrix=mat, alpha=False)
+        if _OCR_AVAILABLE is False:
+            imgpdf = fitz.open("pdf", pix.tobytes("pdf"))
+        else:
+            try:
+                imgpdf = fitz.open("pdf", pix.pdfocr_tobytes())
+                _OCR_AVAILABLE = True
+            except Exception:
+                _OCR_AVAILABLE = False
+                imgpdf = fitz.open("pdf", pix.tobytes("pdf"))
         out.insert_pdf(imgpdf)
     result = out.tobytes(deflate=True, garbage=4, clean=True)
     doc.close()

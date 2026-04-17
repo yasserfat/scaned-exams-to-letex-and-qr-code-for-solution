@@ -29,7 +29,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [1/4] Installing Python 3.11...
+echo [1/5] Installing Python 3.11...
 winget install --id Python.Python.3.11 --silent --accept-package-agreements --accept-source-agreements
 if errorlevel 1 (
     echo       Python may already be installed - continuing.
@@ -43,14 +43,14 @@ if "%PYTHON_EXE%"=="" (
 )
 
 echo.
-echo [2/4] Installing MiKTeX (XeLaTeX + Arabic fonts)...
+echo [2/5] Installing MiKTeX (XeLaTeX + Arabic fonts)...
 winget install --id MiKTeX.MiKTeX --silent --accept-package-agreements --accept-source-agreements
 if errorlevel 1 (
     echo       MiKTeX may already be installed - continuing.
 )
 
 echo.
-echo [3/4] Installing Amiri font via MiKTeX package manager...
+echo [3/5] Installing Amiri font via MiKTeX package manager...
 :: mpm is MiKTeX's CLI package manager
 mpm --install=amiri >nul 2>&1
 if errorlevel 1 (
@@ -58,7 +58,14 @@ if errorlevel 1 (
 )
 
 echo.
-echo [4/4] Installing Python packages...
+echo [4/5] Installing Tesseract OCR (needed for searchable PDF compression)...
+winget install --id UB-Mannheim.TesseractOCR --silent --accept-package-agreements --accept-source-agreements
+if errorlevel 1 (
+    echo       Tesseract may already be installed - continuing.
+)
+
+echo.
+echo [5/5] Installing Python packages...
 python -m pip install --upgrade pip --quiet
 python -m pip install -r requirements.txt
 if errorlevel 1 (
