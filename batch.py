@@ -8,6 +8,7 @@ Figures are cropped automatically using Claude's bounding box estimates.
 
 import os
 import json
+import uuid
 
 from src.orchestrator import process_exam_pdf
 
@@ -31,13 +32,9 @@ done = failed = 0
 
 for i, filename in enumerate(files, 1):
     print(f"\n[{i}/{total}] {filename}")
-    stem    = os.path.splitext(filename)[0]
-    out_dir = os.path.join(OUTPUT_FOLDER, stem)
-
-    if os.path.exists(os.path.join(out_dir, "subject.pdf")):
-        print("  Already done — skipping")
-        done += 1
-        continue
+    # Stage in a uuid folder; rename to smart stem (subject_year) after extraction.
+    # Output name is derived from the PDF's content, not the source filename.
+    out_dir = os.path.join(OUTPUT_FOLDER, f".staging_{uuid.uuid4().hex[:8]}")
 
     try:
         raw_bytes = open(os.path.join(INPUT_FOLDER, filename), "rb").read()
@@ -52,12 +49,14 @@ for i, filename in enumerate(files, 1):
             manual_crops=False,   # auto-crop using Claude's bounding boxes
         )
 
-        # Rename output folder to smart stem (subject_year_date)
-        smart_stem = result.get("stem", stem)
+        # Rename staging folder to smart stem (subject_year)
+        smart_stem = result.get("stem") or f"exam_{uuid.uuid4().hex[:8]}"
         smart_out_dir = os.path.join(OUTPUT_FOLDER, smart_stem)
-        if smart_out_dir != out_dir and not os.path.exists(smart_out_dir):
-            os.rename(out_dir, smart_out_dir)
-            out_dir = smart_out_dir
+        if os.path.exists(smart_out_dir):
+            # Collision: append short hash so we don't clobber prior run
+            smart_out_dir = f"{smart_out_dir}_{uuid.uuid4().hex[:6]}"
+        os.rename(out_dir, smart_out_dir)
+        out_dir = smart_out_dir
 
         print(f"  Subject:  {result['subject']} | {result['year']}")
         print(f"  Figures:  {result['figures_extracted']}/{result['figures_total']}")
