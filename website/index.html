@@ -702,6 +702,37 @@
             opacity: 0.6;
         }
 
+        /* Mobile Menu */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 6px;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--text-dark);
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(10px, 10px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -7px);
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             nav ul {
@@ -711,6 +742,40 @@
 
             .logo {
                 font-size: 1.5rem;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .cta-btn {
+                display: none;
+            }
+
+            nav ul {
+                position: fixed;
+                top: 70px;
+                right: 0;
+                left: 0;
+                background: white;
+                flex-direction: column;
+                padding: 2rem;
+                gap: 1.5rem;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease, visibility 0.3s ease;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                z-index: 999;
+                visibility: hidden;
+            }
+
+            nav ul.mobile-menu-open {
+                max-height: 500px;
+                visibility: visible;
+            }
+
+            nav ul li {
+                text-align: right;
             }
 
             .hero-container,
@@ -824,7 +889,12 @@
                 <i class="fas fa-leaf"></i>
                 BSmart
             </div>
-            <ul>
+            <button class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul id="navMenu">
                 <li><a href="#papers">الأوراق</a></li>
                 <li><a href="#solution">الحل الذكي</a></li>
                 <li><a href="#contact">التواصل</a></li>
@@ -1079,6 +1149,23 @@
     </footer>
 
     <script>
+        // Hamburger menu toggle
+        const hamburger = document.getElementById('hamburger');
+        const navMenu = document.getElementById('navMenu');
+
+        hamburger.addEventListener('click', function() {
+            hamburger.classList.toggle('active');
+            navMenu.classList.toggle('mobile-menu-open');
+        });
+
+        // Close menu when a link is clicked
+        navMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', function() {
+                hamburger.classList.remove('active');
+                navMenu.classList.remove('mobile-menu-open');
+            });
+        });
+
         // Filter functionality
         const filterBtns = document.querySelectorAll('.filter-btn');
         filterBtns.forEach(btn => {
