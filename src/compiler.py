@@ -40,7 +40,7 @@ def build_subject_latex(subject: str, year: str, duration: str,
         rf"\includegraphics[height=0.85cm]{{{qr_image_path}}}%"
     ) if qr_image_path else ""
     qr_footer_label = (
-        r"{\small\textarabic{لتحميل التصحيح}}\hspace{0.4em}%"
+        r"{\small\textarabic{لتحميل التصحيح}}\hspace{0.4em}"
     ) if qr_image_path else ""
     qr_block = (
         r"\vspace{1cm}" "\n"
